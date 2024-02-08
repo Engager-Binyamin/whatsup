@@ -1,2 +1,4 @@
 .env
 node_modules
+session
+.wwebjs_auth\session
