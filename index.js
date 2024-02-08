@@ -83,7 +83,7 @@ client.on('disconnected', async () => {
 client.on('ready', () => {
     console.log('Client is ready!');
     io.emit('ready'); // שלח הודעה לצד הלקוח כאשר הלקוח מוכן
-    sendNewMessage(sampleData);
+    // sendNewMessage(sampleData); //שליחת הודעת ניסיון ישירות דרך שרת ווצאפ
 
 });
 
