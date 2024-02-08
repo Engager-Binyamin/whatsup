@@ -1,16 +1,16 @@
 const express = require('express');
-const { Client, LocalAuth } = require('whatsapp-web.js');
+const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const fs = require('fs').promises
 const { Server } = require('socket.io');
 const cors = require('cors');
 const port = 3636
+const puppeteer = require('puppeteer');
+
 
 const app = express();
 const server = require('http').Server(app);
-// const io = new Server(server);
 
-// app.use(cors());
 
 const io = require('socket.io')(server, {
     cors: {
@@ -31,6 +31,11 @@ app.use(cors({
 
 const client = new Client({
     authStrategy: new LocalAuth(),
+},
+{
+    puppeteer: {
+        executablePath: '/path/to/Chrome',
+    }
 });
 
 
@@ -78,6 +83,8 @@ client.on('disconnected', async () => {
 client.on('ready', () => {
     console.log('Client is ready!');
     io.emit('ready'); // שלח הודעה לצד הלקוח כאשר הלקוח מוכן
+    sendNewMessage(sampleData);
+
 });
 
 const getQr = () => {
@@ -89,66 +96,62 @@ const getQr = () => {
 
 getQr()
 
-client.on('message', msg => {
-    if (msg.body == 'ping') {
-        msg.reply('pong');
-    }
-});
-
-client.on('message', msg => {
-    if (msg.body == 'מה') {
-        msg.reply('מותה');
-    }
-});
 
 client.initialize();
 
 isSending = false;
 
 async function sendNewMessage(data) {
+    console.log(data);
     const rtrnData = {
         _idL: data._idL,
         _idM: data._idM,
         idC: data.idC,
         issend: "Message sent successfully"
     };
+
     const newData = data;
     const chatId = `972${Number(newData.phone)}@c.us`;
 
-    const isWhatsApp = await client.isRegisteredUser(chatId);
-    if (!isWhatsApp) {
-        rtrnData.issend = "Not a WhatsApp user";
-        io.emit("send", { rtrnData });
-        return;
-    }
-
     try {
+        let media;
+        if (data.file) {
+         media =  await MessageMedia.fromUrl(data.file)
+        }
+
         if (newData.withName) {
-            client.sendMessage(chatId, `שלום ${newData.name}, ${newData.msg}`)
-                .then(() => {
-                    io.emit("send", { rtrnData })
-                }).then(()=>{
-                    delay(6000 + Math.random() * 1000)
-                })
+            await client.sendMessage(chatId, `שלום ${newData.name}, ${newData.msg}`);
+        } else {
+            await client.sendMessage(chatId, newData.msg);
         }
-        else {
-            client.sendMessage(chatId, newData.msg)
-                .then(() => {
-                    io.emit("send", { rtrnData });
-                }).then(()=>{
-                    delay(6000 + Math.random() * 1000)
-                })
-                .catch(error => {
-                    console.error("Error sending message:", error);
-                    io.emit("send", { message: "Error sending message" });
-                })
+
+        if (media) {
+            await client.sendMessage(chatId, media);
         }
+
+        io.emit("send", { rtrnData });
     } catch (error) {
         console.error("Error sending message:", error);
         io.emit("send", { message: "Error sending message" });
     }
 }
 
+const axios = require('axios');
+
+
+
+const sampleData = {
+    _idL: "123",
+    _idM: "456",
+    idC: "789",
+    phone: "0503210090", // Replace with the actual phone number
+    withName: true,
+    name: "elirazoooosh",
+    msg: "Hello, how are you?",
+    file: "https://www.gov.il/BlobFolder/homepage/new-home-page/he/428_487.jpg " // Replace with the actual file path if needed
+};
+
+// Call the function
 async function delay(t) {
     return new Promise(resolve => setTimeout(resolve, t))
 }
@@ -157,6 +160,7 @@ io.on('connection', async (socket1) => {
         console.log(data);
         try {
             sendNewMessage(data);
+
         } catch (error) {
             console.error("Error sending message:", error.message);
         
