@@ -80,12 +80,29 @@ client.on('disconnected', async () => {
 
 });
 
+let clientReady = false
+
+
 client.on('ready', () => {
     console.log('Client is ready!');
+    clientReady = true
     io.emit('ready'); // שלח הודעה לצד הלקוח כאשר הלקוח מוכן
     // sendNewMessage(sampleData); //שליחת הודעת ניסיון ישירות דרך שרת ווצאפ
 
 });
+
+// כאשר יש חיבור מלקוח
+io.on('connection', (socket5) => {
+    // כאשר הלקוח שואל שאלה
+    socket5.on("askServer", (clientReady) => {
+        console.log('Client is asking a question');
+
+        // טפל בשאלה מהלקוח ושלח תשובה או בצורת המידע המתאימה
+        socket5.emit('serverResponse', { message: 'Hello from the server!', clientReady });
+    });
+});
+
+
 
 const getQr = () => {
     client.on('qr', (qr) => {
@@ -102,12 +119,11 @@ client.initialize();
 isSending = false;
 
 async function sendNewMessage(data) {
-    console.log(data);
     const rtrnData = {
-        _idL: data._idL,
-        _idM: data._idM,
-        idC: data.idC,
-        issend: "Message sent successfully"
+        leadId: data._idL,
+        msgId: data._idM,
+        campId: data.idC,
+        issend: "recieved"
     };
 
     const newData = data;
@@ -129,14 +145,13 @@ async function sendNewMessage(data) {
             await client.sendMessage(chatId, media);
         }
 
-        io.emit("send", { rtrnData });
+        io.emit("sent", { rtrnData });
     } catch (error) {
         console.error("Error sending message:", error);
-        io.emit("send", { message: "Error sending message" });
+        io.emit("sent", { message: "Error sending message" });
     }
 }
 
-const axios = require('axios');
 
 
 
@@ -157,7 +172,6 @@ async function delay(t) {
 }
 io.on('connection', async (socket1) => {
     socket1.on('data', (data) => {
-        console.log(data);
         try {
             sendNewMessage(data);
 
