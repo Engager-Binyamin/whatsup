@@ -21,6 +21,7 @@ const io = require('socket.io')(server, {
 });
 
 
+app.use(express.json())
 
 
 app.use(cors({
@@ -184,9 +185,13 @@ io.on('connection', async (socket1) => {
 
 
 
+// const miriamTest = require('./schedules')
+// app.use('/miriamTest', miriamTest)
 
-server.listen(3000, () => {
-    console.log('Server is running on port 3000');
-})
+
+
+// server.listen(3000, () => {
+//     console.log('Server is running on port 3000');
+// })
 
 app.listen(port, () => { console.log("Listening on port " + port) })
