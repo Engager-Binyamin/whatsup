@@ -9,11 +9,10 @@ const sampleData = {
   file: "https://www.gov.il/BlobFolder/homepage/new-home-page/he/428_487.jpg ", // Replace with the actual file path if needed
 };
 
-function delay_between_messages(campId, messageId) {
-  async function sendNewMessage(data) {
+function delayBetweenMessages(msg, client) {
+  async function sendNewMessage(msg, client) {
     const rtrnData = {
-      leadId: data._idL,
-      messageId: data._idM,
+      messageId: msg,
       campId: data.idC,
       issend: "recieved",
     };
@@ -47,4 +46,4 @@ function delay_between_messages(campId, messageId) {
     }
   }
 }
-export default { delay_between_messages };
+export default { delayBetweenMessages };

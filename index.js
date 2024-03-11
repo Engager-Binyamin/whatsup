@@ -1,31 +1,20 @@
+require("dotenv").config();
 const express = require("express");
+const mainRouter = require("./routes");
 const cors = require("cors");
 const app = express();
-const port = 3000;
+const PORT = process.env.PORT || 3000;
 const db = require("./DL/db");
+const { getUsers } = require("./BL/account.service");
+const { io } = require("socket.io-client");
+const socket1 = io("http://localhost:" + PORT);
+
 db.connect();
-const client = require("./clientInitialize");
+app.use("/whatsUpServer", mainRouter);
 app.use(express.json());
 app.use(cors());
 
-const userModel = require("./DL/models/user.model");
-
-let usersId = [];
-
-async function getUsers() {
-  try {
-    const users = await userModel.find({});
-    usersId = users.map((user) => user._id);
-    usersId.forEach((userId) => {
-      client.startClient(userId);
-    });
-    return users;
-  } catch (error) {
-    console.error("Error fetching users:", error);
-  }
-}
-
-app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
-  getUsers();
+app.listen(PORT, () => {
+  console.log(`Example app listening at http://localhost:${PORT}`);
+  //   getUsers()
 });
