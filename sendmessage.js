@@ -7,6 +7,7 @@ async function sendNewMessage(data) {
     idC: data.idC,
     issend: "Message sent successfully"
   };
+
   const newData = data;
   const chatId = `972${Number(newData.phone)}@c.us`;
   try {
