@@ -9,17 +9,18 @@ let client
 
 
 const socketRouter = (io, socket,client,clients,clientId) => {
-  
-
   client.on('qr', (qr) => {
-        console.log(`QR code received for ${clientId}`);
-        qrcode.generate(qr, { small: true });
-        socket.emit(`qr`, qr);
-      });
+    if(clientId){
+      console.log(`QR code received for ${clientId}`);
+      qrcode.generate(qr, { small: true });
+      socket.emit(`qr`, qr);
+    }
+    });
     
     client.on('ready', () => {
       console.log(`Client ${clientId} is ready!`);
       clients[clientId].isReady = true;
+    socket.emit(`ready`);
     });
   
     client.on('auth_failure', (session) => {
@@ -35,7 +36,7 @@ const socketRouter = (io, socket,client,clients,clientId) => {
     });
   
     client.on('disconnected', (reason) => {
-      console.log(`Session ${session} disconnected for reason ${reason}`);
+      console.log(`Session disconnected for reason ${reason}`);
     });
   
     client.on('loading_screen', (msg, parent) => {

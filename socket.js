@@ -30,18 +30,18 @@ let id
     clients[clientId].bot = client;
     return clients[clientId];
   }
-async function getUsers() {
-    try {
-        users = await userModel.find({});
-        console.log(users[0]._id);
-        createWhatsAppClient(users[0]._id);
-        id = users[0]._id
+// async function getUsers() {
+//     try {
+//         users = await userModel.find({});
+//         console.log(users[0]._id);
+//         createWhatsAppClient(users[0]._id);
+//         id = users[0]._id
 
-        return users;
-    } catch (error) {
-        console.error('Error fetching users:', error);
-    }
-}
+//         return users;
+//     } catch (error) {
+//         console.error('Error fetching users:', error);
+//     }
+// }
 const createServer = async (server) => {
     const io = new Server(server,{
         cors: {
@@ -50,9 +50,11 @@ const createServer = async (server) => {
             credentials: true,
         },
     });
-    await getUsers();
+    // await getUsers();
 
     io.on('connection', (socket) => {
+        id = socket.handshake.auth.userData ? socket.handshake.auth.userData._id:''
+        createWhatsAppClient(id);
         socketRouter(io, socket, client, clients,id);
     })
 

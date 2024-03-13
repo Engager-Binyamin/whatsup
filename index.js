@@ -26,14 +26,14 @@ async function getUsers() {
     try {
         users = await userModel.find({});
         console.log(users[0]._id);
-        clientInitialize.createWhatsAppClient(users[0]._id);
+        // clientInitialize.createWhatsAppClient(users[0]._id);
 
         return users;
     } catch (error) {
         console.error('Error fetching users:', error);
     }
 }
-console.log(users)
+// console.log(users)
 
 
 
