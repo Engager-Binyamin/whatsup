@@ -1,50 +1,48 @@
-const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
+const { Client, LocalAuth } = require('whatsapp-web.js');
 
-async function startClient(clientId) {
-  try {
-    const client = new Client({
-      clientId,
-      puppeteer: {
-        headless: true,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--no-zygote',
-          '--single-process',
-          '--disable-gpu'
-        ],
-      },
-      authStrategy: new LocalAuth({
-        clientId: clientId,
-        // dataPath: ` .wwebjs_auth/session./${clientId}-session`
-      }),
-    });
 
-    client.on('qr', (qr) => {
-      console.log(clientId);
-      qrcode.generate(qr, { small: true });
-    });
 
+
+let client
+
+
+
+const socketRouter = (io, socket,client,clients,clientId) => {
+  
+
+  client.on('qr', (qr) => {
+        console.log(`QR code received for ${clientId}`);
+        qrcode.generate(qr, { small: true });
+        socket.emit(`qr`, qr);
+      });
+    
     client.on('ready', () => {
-      console.log('READY');
+      console.log(`Client ${clientId} is ready!`);
+      clients[clientId].isReady = true;
     });
-
-    client.on('message', msg => {
-      if (msg.body == 'מה') {
-        msg.reply('מותה');
-      }
+  
+    client.on('auth_failure', (session) => {
+      console.log(`Session ${session} authentication failure!`);
     });
-
-    await client.initialize();
-    return client;
-  } catch (error) {
-    console.error('Error initializing client:', error);
-    throw error;
-  }
+  
+    client.on('authenticated', (session) => {
+      console.log(`Session ${session} authenticated`);
+    });
+  
+    client.on('change_state', (state) => {
+      console.log(`Session ${session} changed state to ${state}`);
+    });
+  
+    client.on('disconnected', (reason) => {
+      console.log(`Session ${session} disconnected for reason ${reason}`);
+    });
+  
+    client.on('loading_screen', (msg, parent) => {
+      console.log(msg, parent);
+    })
+  
 }
+  //   
 
-module.exports = { startClient };
+module.exports = {  socketRouter }
