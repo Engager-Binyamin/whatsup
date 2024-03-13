@@ -1,7 +1,4 @@
 const mongoose = require("mongoose");
-const db = require("../db")
-db.connect();
-const client = require('../../clientInitialize');
 
 const receivedMsg = new mongoose.Schema({
   leadId: {
@@ -75,7 +72,7 @@ const msgSchema = new mongoose.Schema({
   // TODO: check if this property needs to be removed
   status: {
     type: String,
-    enum: ["created", "sent", "received"],
+    enum: ["created", "sent", "received", 'isSending', 'isAwaitToSend', 'isSchedules', 'isFinishToSend'],
     default: "created",
 
   }
@@ -115,20 +112,5 @@ const campaignSchema = new mongoose.Schema({
 });
 
 const campaignModel = mongoose.model("campaign", campaignSchema);
-
-async function getCampaigns(userId) {
-  try {
-    const campaigns = await campaignModel.findById(userId);
-    // client.startClient(userId, campaigns);
-    console.log(campaigns.msg.map(msg => msg.content));
-    return campaigns;
-  } catch (error) {
-    console.error("Error fetching campaigns:", error);
-  }
-}
-
-
-getCampaigns("65eda5d5a53246c4f887ce33");
-
 module.exports = campaignModel;
 

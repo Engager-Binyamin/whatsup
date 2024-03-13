@@ -1,5 +1,8 @@
 const userModel = require('../models/user.model');
 
+async function create(data) {
+    return await userModel.create(data);
+}
 
 async function read(filter={}) {
     return await userModel.find(filter);
@@ -17,4 +20,4 @@ async function updateOne(filter, data) {
     return await userModel.updateOne(filter, data, { new: true })
 }
 
-module.exports = { read, readOne, update, updateOne }
+module.exports = { create, read, readOne, update, updateOne }

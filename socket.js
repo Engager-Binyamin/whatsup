@@ -56,7 +56,7 @@ const createServer = async (server) => {
         socketRouter(io, socket, client, clients,id);
     })
 
-    server.listen(3000, () => {
+    server.listen(3003, () => {
         console.log('listening on *:3000');;
     })
 }

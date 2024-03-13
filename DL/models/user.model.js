@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const db = require("../db")
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -60,20 +59,5 @@ const userSchema = new mongoose.Schema({
 });
 
 const userModel = mongoose.model("user", userSchema);
-
-// async function create  () {
-//   const newUser = new userModel({
-//     name: "eliraz",
-//     email: "eliraz@gmail.com",
-//     password: "123456",
-//     phone: "0503210090",
-//   });
-//   const result = await newUser.save();
-//   console.log(result);
-//   return result;
-// };
-
-// create()
-
 module.exports = userModel;
 

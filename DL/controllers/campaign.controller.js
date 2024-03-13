@@ -10,9 +10,26 @@ async function readOne(filter = {}) {
     return await campaignModel.findOne(filter)
 }
 
+//
+async function create(data) {
+    return await campaignModel.create(data)
+}
+
+//
+async function update(filter = {}, update) {
+    return await campaignModel.findByIdAndUpdate(filter, update, { new: true })
+}
+
+
+
+
+
 //not in use
 async function readOneWithoutPopulate(filter, populate) {
     return await campaignModel.findOne(filter).populate(populate)
+}
+function deleteById(id) {
+    return campaignModel.findByIdAndUpdate(id, { isActive: false }, { new: true })
 }
 
 async function updateOne(filter = {}, update) {
@@ -24,6 +41,9 @@ async function updateOne(filter = {}, update) {
 module.exports = {
     read,
     readOne,
+    create,
+    update,
+    deleteById,
     updateOne,
     readOneWithoutPopulate
 }
