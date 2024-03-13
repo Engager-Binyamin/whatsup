@@ -14,24 +14,36 @@ const { startClient } = require("./DL/controllers/clientInitialize");
 const server = http.createServer(app);
 
 db.connect();
-app.use("/message", mainRouter);
+const clientInitialize = require("./clientInitialize");
 app.use(express.json());
-app.use(cors());
+const { createServer } = require("./socket");
+const http = require("http");
 
-const io = new Server(server, {
-  cors: {
-    origin: ["http://localhost:5173"],
-  },
-});
+const server = http.createServer(app);
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+    credentials: true,
+  })
+);
 
-io.on("qr", (socket) => {
-  console.log(`user connected: ${socket.id}`);
-  socket.on("qr", (data) => {
-    console.log("hello");
-  });
-});
+const userModel = require("./DL/models/user.model");
+const { route } = require("./router.sendMessage");
 
-app.listen(PORT, () => {
-  console.log(`Example app listening at http://localhost:${PORT}`);
-  //   getUsers()
-});
+let users = [];
+
+async function getUsers() {
+  try {
+    users = await userModel.find({});
+    console.log(users[0]._id);
+    clientInitialize.createWhatsAppClient(users[0]._id);
+
+    return users;
+  } catch (error) {
+    console.error("Error fetching users:", error);
+  }
+}
+console.log(users);
+
+createServer(server);
