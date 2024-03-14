@@ -15,18 +15,12 @@ app.use(cors({
     credentials: true,
 }));
 
-// const { route } = require('./router.sendMessage');
-const  miriamTest  = require('./msgQueue.service2');
-
-app.use('/miriamTest', miriamTest)
+const { route } = require('./router.sendMessage');
 
 
+// const  miriamTest  = require('./msgQueue.service2');
+// app.use('/miriamTest', miriamTest)
 
-// const miriamTest = require('./msgQueue.service2')
-// server.listen(3000, () => {
-//     console.log('Server is running on port 3000');
-// })
-// app.listen(port, () => { console.log("Listening on port " + port) })
 
 
 createServer(server)
