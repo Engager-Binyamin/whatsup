@@ -2,18 +2,35 @@ const msgQueueController = require('./DL/controllers/msgQueue.controller')
 
 let msgSchedule = []
 let queue = []
-// אם השרת קרס
-async function createNewQueue(){
-    let msgs = await msgQueueController.read({})
-    msgs.forEach(ms=>{
-        let now = new Date().getTime()
-        if(ms.timeToSend <= now) queue.push(ms)
-        else msgSchedule.push(ms)
-    })
-    console.log({queue, msgSchedule});
+
+function checkTimeMsg(msg){
+    let now = new Date().getTime()
+    if (msg.timeToSend <= now) {
+        if (queue.length > 0) {
+            queue.push(msg)
+        } else {
+            queue.push(msg)
+            sendQueue()
+        }
+    }
+    else {
+        if (msgSchedule.length > 0) {
+            msgSchedule.push(msg)
+        } else {
+            msgSchedule.push(msg)
+            schedule()
+        }
+    }
 }
-async function addMsgToDB(msg){
-    let {userId, leadId, campaignId, contentMsg} = msg
+
+// אם השרת קרס
+async function createNewQueue() {
+    let msgs = await msgQueueController.read({})
+    msgs.forEach(ms => checkTimeMsg(ms))
+}
+// מוסיף את ההודעות לDB מופעל עבור כל הודעה שנכנסת ל addMsgToQueue 
+async function addMsgToDB(msg) {
+    let { userId, leadId, campaignId, contentMsg } = msg
     let timeToSend
     if (msg.timeToSend) {
         timeToSend = msg.timeToSend
@@ -29,72 +46,95 @@ async function addMsgToDB(msg){
     })
 }
 // הוספת הודעות
-async function addMsgToQueue(arrMsg){
-    arrMsg.forEach(ms=>{
+async function addMsgToQueue(arrMsg) {
+    arrMsg.forEach(ms => {
         addMsgToDB(ms)
-        let now = new Date().getTime()
-        if(ms.timeToSend <= now) queue.push(ms)
-        else msgSchedule.push(ms)
+        checkTimeMsg(ms)
     })
 }
-async function schedule(){}
-function eliraz(){
+
+// מנהל תזמון - כשמגיע התזמון - מכניס את ההודעה לתור
+async function schedule() {
+    msgSchedule = msgSchedule.sort((a, b) => a.timeToSend - b.timeToSend)
+    if (msgSchedule.length > 0) {
+        let now = new Date().getTime()
+        let timeAwait = msgSchedule[0].timeToSend - now
+        // אם במקרה הזמן כבר עבר - הוא יוסיף אותו ישר לתחילת התור.
+        setTimeout(() => {
+            if (queue.length > 0) {
+                queue.unshift(msgSchedule[0])
+            } else {
+                queue.unshift(msgSchedule[0])
+                sendQueue()
+            }
+            msgSchedule.shift()
+        }
+            , timeAwait)
+    } else {
+        console.log('🌹🌹🌹');
+    }
+}
+
+function eliraz(data) {
     console.log('💐💐💐');
 }
-// שולח. אמור לבדוק בכל רגע נתון אם יש הודעות בתור. או שההוספה לתור יבדוק אם הוא עובד.
-async function sendQueue(arrQueue){
-    if(!arrQueue.length == 0){
-        eliraz(arrQueue[0])
-        setTimeout(()=>{
-            arrQueue.shift()
-            // לא מחקתי מהDB כי לא ידעתי בוודאות שזה נשלח.
-            sendQueue(arrQueue)
+// שולח את התור 
+async function sendQueue() {
+    if (queue.length > 0 ) {
+        eliraz(queue[0])
+        // לא מחקתי מהDB כי לא ידעתי בוודאות שזה נשלח.
+        setTimeout(() => {
+            queue.shift()
+            sendQueue()
+
         }
-        , 6000)
-    }else{
+            , 6000)
+    } else {
         console.log('🌹🌹🌹');
-        // return '🌹🌹🌹'
     }
 }
 
 
 
-
+// זה מה שאריה או מישהו מעביר לי כל פעם שהמשתמש שולח הודעה... שולחים את זה בפונקציה addMsgToQueue 
 let luli = [
     {
-        userId:'65ed9c525b51ed6b4bd16107',
-        leadId:'65f1d47cd1041bf650cfaf4f',
-        contentMsg:'yeeeeeeeeeee',
-        timeToSend : 1710420624627,
-        campaignId:'65eda5d5a53246c4f887ce33'
+        userId: '65ed9c525b51ed6b4bd16107',
+        leadId: '65f1d47cd1041bf650cfaf4f',
+        contentMsg: 'yeeeeeeeeeee',
+        timeToSend: 1710420624627,
+        campaignId: '65eda5d5a53246c4f887ce33'
     },
     {
-        userId:'65ed9c525b51ed6b4bd16107',
-        leadId:'65f1d47cd1041bf650cfaf4f',
-        contentMsg:'yeeeeeeeeeee',
-        timeToSend : 1710420624627,
-        campaignId:'65eda5d5a53246c4f887ce33'
+        userId: '65ed9c525b51ed6b4bd16107',
+        leadId: '65f1d47cd1041bf650cfaf4f',
+        contentMsg: 'yeeeeeeeeeee',
+        timeToSend: 1710420624627,
+        campaignId: '65eda5d5a53246c4f887ce33'
     },
     {
-        userId:'65ed9c525b51ed6b4bd16107',
-        leadId:'65f1d47cd1041bf650cfaf4f',
-        contentMsg:'yeeeeeeeeeee',
-        timeToSend : 1710420624627,
-        campaignId:'65eda5d5a53246c4f887ce33'
+        userId: '65ed9c525b51ed6b4bd16107',
+        leadId: '65f1d47cd1041bf650cfaf4f',
+        contentMsg: 'yeeeeeeeeeee',
+        timeToSend: 1710420624627,
+        campaignId: '65eda5d5a53246c4f887ce33'
     }
 ]
 
 
 const express = require("express");
 const router = express.Router();
-router.all('/', async (req, res) => {
+
+router.get('/', async (req, res) => {
     try {
-        // addMsgToQueue(luli)
         await createNewQueue()
-        sendQueue(queue)
+        // console.log({ queue, msgSchedule });
+        // addMsgToQueue(luli)
+        // sendQueue()
         res.send('🪻🪻🪻')
     } catch (error) {
         res.send(error)
     }
 })
+
 module.exports = router

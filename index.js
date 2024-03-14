@@ -15,26 +15,17 @@ app.use(cors({
     credentials: true,
 }));
 
-const { route } = require('./router.sendMessage');
+// const { route } = require('./router.sendMessage');
+const  miriamTest  = require('./msgQueue.service2');
+
+app.use('/miriamTest', miriamTest)
 
 
 
-
-
-
-const db = require('./DL/db')
-
-// const app = express();
-// db.connect();
 // const miriamTest = require('./msgQueue.service2')
-// app.use('/miriamTest', miriamTest)
-
-
-
 // server.listen(3000, () => {
 //     console.log('Server is running on port 3000');
 // })
-
 // app.listen(port, () => { console.log("Listening on port " + port) })
 
 
