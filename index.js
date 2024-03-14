@@ -184,14 +184,17 @@ io.on('connection', async (socket1) => {
 });
 
 
+const db = require('./DL/db')
 
-// const miriamTest = require('./schedules')
-// app.use('/miriamTest', miriamTest)
+// const app = express();
+db.connect();
+const miriamTest = require('./msgQueue.service2')
+app.use('/miriamTest', miriamTest)
 
 
 
-// server.listen(3000, () => {
-//     console.log('Server is running on port 3000');
-// })
+server.listen(3000, () => {
+    console.log('Server is running on port 3000');
+})
 
 app.listen(port, () => { console.log("Listening on port " + port) })
