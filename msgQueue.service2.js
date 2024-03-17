@@ -5,83 +5,103 @@ let msgSchedule = {}
 let queue = {}
 
 function checkTimeMsg(msg, userId) {
-    let now = new Date().getTime()
-    if (msg.timeToSend <= now) {
-        if (queue[userId]?.length > 0) {
-            queue[userId]?.push(msg)
-        } else {
-            queue[userId]?.push(msg)
-            sendQueue(userId)
+    try {
+        let now = new Date().getTime()
+        if (msg.timeToSend <= now) {
+            if (queue[userId]?.length > 0) {
+                queue[userId]?.push(msg)
+            } else {
+                queue[userId]?.push(msg)
+                sendQueue(userId)
+            }
         }
-    }
-    else {
-        if (msgSchedule[userId]?.length > 0) {
-            msgSchedule[userId]?.push(msg)
-        } else {
-            msgSchedule[userId]?.push(msg)
-            schedule(userId)
+        else {
+            if (msgSchedule[userId]?.length > 0) {
+                msgSchedule[userId]?.push(msg)
+            } else {
+                msgSchedule[userId]?.push(msg)
+                schedule(userId)
+            }
         }
+    } catch (error) {
+        console.log(error);
     }
 }
 
 // אם השרת קרס
 async function createNewQueue(_id = '65ed9c525b51ed6b4bd16107',newMsgs=undefined) {
-    let msgs 
-    if (!queue[_id]) queue[_id] = []
-    if (!msgSchedule[_id]) msgSchedule[_id] = []
-    if(!newMsgs)
-    msgs = await msgQueueController.read({ userId:_id })
-    else 
-        msgs = newMsgs
-    msgs.forEach(ms => { 
-        checkTimeMsg(ms, _id)})
+    try {
+        let msgs 
+        if (!queue[_id]) queue[_id] = []
+        if (!msgSchedule[_id]) msgSchedule[_id] = []
+        if(!newMsgs)
+        msgs = await msgQueueController.read({ userId:_id })
+        else 
+            msgs = newMsgs
+        msgs.forEach(ms => { 
+            checkTimeMsg(ms, _id)})
+    } catch (error) {
+        console.log(error);
+    }
 }
 
 // מוסיף את ההודעות לDB מופעל עבור כל הודעה שנכנסת ל addMsgToQueue 
 async function addMsgToDB(msg) {
-    let { userId, leadId, campaignId, contentMsg } = msg
-    let timeToSend
-    if (msg.timeToSend) {
-        timeToSend = msg.timeToSend
-    } else {
-        timeToSend = new Date().getTime()
+    try {
+        let { userId, leadId, campaignId, contentMsg } = msg
+        let timeToSend
+        if (msg.timeToSend) {
+            timeToSend = msg.timeToSend
+        } else {
+            timeToSend = new Date().getTime()
+        }
+        return msgQueueController.create({
+            userId,
+            leadId,
+            campaignId,
+            contentMsg,
+            timeToSend
+        })
+    } catch (error) {
+        console.log(error);
     }
-    return msgQueueController.create({
-        userId,
-        leadId,
-        campaignId,
-        contentMsg,
-        timeToSend
-    })
 }
 
 // הוספת הודעות
 async function addMsgToQueue(arrMsg, userId) {
-    let newMsgs = await Promise.all(arrMsg.map(async (ms) => {
+    try {
+            let newMsgs = await Promise.all(arrMsg.map(async (ms) => {
         let msg = await addMsgToDB(ms)
         return msg
     }))
     await createNewQueue(userId,newMsgs)
+    } catch (error) {
+        console.log(error);
+    }
 }
 
 // מנהל תזמון - כשמגיע התזמון - מכניס את ההודעה לתור
 async function schedule(userId) {
-    msgScheduleByUser = msgSchedule[userId]?.sort((a, b) => a.timeToSend - b.timeToSend)
-    if (msgSchedule[userId]?.length > 0) {
-        let now = new Date().getTime()
-        let timeAwait = msgSchedule[userId][0].timeToSend - now
-        // אם במקרה הזמן כבר עבר - הוא יוסיף אותו ישר לתחילת התור.
-        setTimeout(() => {
-            if (queue[userId]?.length > 0) {
-                queue[userId]?.unshift(msgSchedule[0])
-            } else {
-                queue[userId]?.unshift(msgSchedule[0])
-                sendQueue(userId)
+    try {
+        msgScheduleByUser = msgSchedule[userId]?.sort((a, b) => a.timeToSend - b.timeToSend)
+        if (msgSchedule[userId]?.length > 0) {
+            let now = new Date().getTime()
+            let timeAwait = msgSchedule[userId][0].timeToSend - now
+            // אם במקרה הזמן כבר עבר - הוא יוסיף אותו ישר לתחילת התור.
+            setTimeout(() => {
+                if (queue[userId]?.length > 0) {
+                    queue[userId]?.unshift(msgSchedule[0])
+                } else {
+                    queue[userId]?.unshift(msgSchedule[0])
+                    sendQueue(userId)
+                }
+                msgSchedule[userId]?.shift()
             }
-            msgSchedule[userId]?.shift()
+                , timeAwait)
+        } else {
         }
-            , timeAwait)
-    } else {
+    } catch (error) {
+        console.log(error);
     }
 }
 
@@ -105,17 +125,21 @@ async function sentOneMsg(data) {
 }
 // שולח את התור 
 async function sendQueue(userId) {
-    if (queue[userId]?.length > 0) {
-        sentOneMsg(queue[userId][0])
-        setTimeout(() => {
-            // msgQueueController.del(queue[userId][0]._id)
-            queue[userId].shift()
-            sendQueue(userId)
-
+    try {
+        if (queue[userId]?.length > 0) {
+            sentOneMsg(queue[userId][0])
+            setTimeout(() => {
+                // msgQueueController.del(queue[userId][0]._id)
+                queue[userId].shift()
+                sendQueue(userId)
+    
+            }
+                , 6000)
+        } else {
+            console.log('🌹🌹🌹');
         }
-            , 6000)
-    } else {
-        console.log('🌹🌹🌹');
+    } catch (error) {
+        console.log(error);
     }
 }
 
