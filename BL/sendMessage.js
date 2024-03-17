@@ -13,7 +13,8 @@ async function sendMessage(body) {
     const { user, campaignId, msgId } = body;
     let details = await getDetailsToSend(campaignId, msgId);
     let msgToSend = await injectionDataToMsg(details);
-    let result = await sendMessageToQuete(user, campaignId, msgToSend);
+    // console.log(msgToSend);
+    // let result = await sendMessageToQuete(user, campaignId, msgToSend);
   } catch (err) {}
 }
 
@@ -33,12 +34,37 @@ async function getDetailsToSend(campaignId, msgId) {
       leadsArr.push(lead._id);
     }
   });
-  console.log("msgLaRR", leadsArr);
+  let msgContent = msg.content;
+  // console.log("msgC", msgContent);
   return {
     leadsArr,
     msgId,
-    msgContent: "",
+    msgContent,
   };
 }
 
+function injectionDataToMsg(msg) {
+  const { leadsArr, msgId, msgContent } = msg;
+
+  if (!msgContent.includes("@")) {
+    massege = leadsArr.map((lead) => {
+      return { lead: lead._id, msgId, msgContent: msgContent };
+    });
+    return massege;
+  } else {
+    const fields = Object.keys(leadsArr[0]);
+
+    massege = leadsArr.map((lead) => {
+      let namePattern = new RegExp("\\@" + fields[0], "g");
+      let orderMsg = msgContent.replaceAll(namePattern, lead.fullName);
+      let emailPattern = new RegExp("\\@" + fields[1], "g");
+      orderMsg = orderMsg.replaceAll(emailPattern, lead.email);
+      let phonePattern = new RegExp("\\@" + fields[2], "g");
+      orderMsg = orderMsg.replaceAll(phonePattern, lead.phone);
+      console.log(orderMsg);
+      return { lead: lead._id, msgId, content: orderMsg };
+    });
+  }
+  return massege;
+}
 module.exports = { sendMessage, getDetailsToSend };
