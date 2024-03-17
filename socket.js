@@ -3,10 +3,8 @@ const { socketRouter } = require('./clientInitialize');
 const userModel = require('./DL/models/user.model');
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
-
-
-
-const clients = {"65ed9c525b51ed6b4bd16107":{},"123456789":{}, "65eeca187d0944e92ab44179":{}};
+const {createNewQueue}=require('./msgQueue.service2')
+const {clients} = require('./clients')
 let client
 let id
 function createWhatsAppClient(clientId,io, socket) {
@@ -26,19 +24,20 @@ function createWhatsAppClient(clientId,io, socket) {
         //  }
      });
      client.on('qr', (qr) => {
-        if(clientId){
-          console.log(`QR code received for ${clientId}`);
-          qrcode.generate(qr, { small: true });
-          socket.emit(`qr`, qr);
-        }
+         if(clientId){
+             console.log(`QR code received for ${clientId}`);
+             qrcode.generate(qr, { small: true });
+             socket.emit(`qr`, qr);
+            }
         });
         
         client.on('ready', () => {
-          console.log(`Client ${clientId} is ready!`);
-          clients[clientId].isReady = true;
-        socket.emit(`ready`);
+            console.log(`Client ${clientId} is ready!`);
+
+            clients[clientId].isReady = true;
+            socket.emit(`ready`);
         });
-      
+        
   
     client.initialize().then().catch((e) => {
       console.log(e)
@@ -65,8 +64,9 @@ const createServer = async (server) => {
     })
 
     server.listen(3000, () => {
+        createNewQueue()
         console.log('listening on *:3000');;
     })
 }
 
-module.exports = { createServer, clients };
+module.exports = { createServer };

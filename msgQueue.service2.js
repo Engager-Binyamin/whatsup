@@ -1,4 +1,5 @@
 const msgQueueController = require('./DL/controllers/msgQueue.controller')
+const campaignController = require('./DL/controllers/campaign.controller')
 
 let msgSchedule = {}
 let queue = {}
@@ -17,16 +18,14 @@ function checkTimeMsg(msg, userId) {
         if (msgSchedule[userId]?.length > 0) {
             msgSchedule[userId]?.push(msg)
         } else {
-            console.log('🤡');
             msgSchedule[userId]?.push(msg)
             schedule(userId)
         }
     }
-    // console.log({ queue, msgSchedule, luli: queue['65ed9c525b51ed6b4bd16107'] });
 }
 
 // אם השרת קרס
-async function createNewQueue(_id = '65ed9c525b51ed6b4bd16107',newMsgs) {
+async function createNewQueue(_id = '65ed9c525b51ed6b4bd16107',newMsgs=undefined) {
     let msgs 
     if (!queue[_id]) queue[_id] = []
     if (!msgSchedule[_id]) msgSchedule[_id] = []
@@ -67,15 +66,8 @@ async function addMsgToQueue(arrMsg, userId) {
 
 // מנהל תזמון - כשמגיע התזמון - מכניס את ההודעה לתור
 async function schedule(userId) {
-    console.log({userId, msgSchedule});
-    console.log('🪻🪻');
-    console.log(msgSchedule[userId]);
     msgScheduleByUser = msgSchedule[userId]?.sort((a, b) => a.timeToSend - b.timeToSend)
-    console.log({msgScheduleByUser});
     if (msgSchedule[userId]?.length > 0) {
-
-        console.log(msgSchedule[userId][0].timeToSend)
-
         let now = new Date().getTime()
         let timeAwait = msgSchedule[userId][0].timeToSend - now
         // אם במקרה הזמן כבר עבר - הוא יוסיף אותו ישר לתחילת התור.
@@ -90,17 +82,31 @@ async function schedule(userId) {
         }
             , timeAwait)
     } else {
-        console.log('🌹🌹🌹');
     }
 }
 
-function eliraz(data) {
-    console.log('💐💐💐');
+async function sentOneMsg(data) {
+    try{
+
+        const campaign = await campaignController.readOne({_id:data.campaignId})
+        if(!campaign) throw 'ajs'
+        const lead = campaign.leads.find(le=>String(le._id)===String(data.leadId))
+        if(!lead) throw 'asfd'
+        const newData= {
+            leadId:data.leadId,
+            msg:data.contentMsg,
+            userID: data.userId,
+            phone: lead.phone.replace('0','',1)
+        }
+        sendNewMessage(newData)
+    }catch(err){
+        console.log(err);
+    }
 }
 // שולח את התור 
 async function sendQueue(userId) {
     if (queue[userId]?.length > 0) {
-        eliraz(queue[userId][0])
+        sentOneMsg(queue[userId][0])
         setTimeout(() => {
             // msgQueueController.del(queue[userId][0]._id)
             queue[userId].shift()
@@ -143,6 +149,8 @@ let luli = [
 
 const express = require("express");
 const { use } = require('./msgQueue.service2')
+const { sendNewMessage } = require('./BL/sendmessage.service')
+const { readOne, readOneWithoutPopulate } = require('./DL/controllers/campaign.controller')
 const router = express.Router();
 
 router.get('/', async (req, res) => {
@@ -155,4 +163,5 @@ router.get('/', async (req, res) => {
     }
 })
 
-module.exports = router
+
+module.exports = {createNewQueue}
