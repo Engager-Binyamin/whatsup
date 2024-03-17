@@ -5,8 +5,9 @@ const app = express();
 const db = require('./DL/db');
 db.connect();
 app.use(express.json());
-const {createServer} = require('./socket');
 const http = require('http');
+const { createServer, clients } = require('./socket'); // כאן מייבאים את createServer ואת המשתנה clients מקובץ ה socket
+const router = require('./sendMessage.router'); // נייבא את הראוטר המוגדר בקובץ router.js
 
 const server = http.createServer(app);
 app.use(cors({
@@ -15,11 +16,16 @@ app.use(cors({
     credentials: true,
 }));
 
-const { route } = require('./router.sendMessage');
+// const { route } = require('./router.sendMessage');
 
 
-const  miriamTest  = require('./msgQueue.service2');
-app.use('/miriamTest', miriamTest)
+// const  miriamTest  = require('./msgQueue.service2');
+// app.use('/miriamTest', miriamTest)
+
+
+
+// createServer(server)
+app.use('/sendmessage', router); // ראוט עבור שליחת הודעות
 
 
 

@@ -2,12 +2,6 @@ const qrcode = require('qrcode-terminal');
 const { Client, LocalAuth } = require('whatsapp-web.js');
 
 
-
-
-let client
-
-
-
 const socketRouter = (io, socket,client,clients,clientId) => {
   client.on('qr', (qr) => {
     if(clientId){
