@@ -1,5 +1,5 @@
 let isSending = false;
-async function sendNewMessage(data) {
+async function sendNewMessage(data, socket,client ) {
   console.log(data);
   const rtrnData = {
     _idL: data._idL,
