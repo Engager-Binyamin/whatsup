@@ -9,18 +9,17 @@ function dinamicInput(msg) {
        })
        return  massege
      } else {
-       const fields = Object.keys(leads[0]);
-  
-       massege = leads.map((lead) => {
-         
-         let namePattern = new RegExp("\\@" + fields[0], "g");
-         let orderMsg = msgContent.replaceAll(namePattern, lead.fullName);
-         let emailPattern = new RegExp("\\@" + fields[1], "g");
-         orderMsg = orderMsg.replaceAll(emailPattern, lead.email);
-         let phonePattern = new RegExp("\\@" + fields[2], "g");
-         orderMsg = orderMsg.replaceAll(phonePattern, lead.phone);
-         return {lead:lead._id, msgId ,content:orderMsg}
-       });
+        const fields = Object.keys(leads[0]);
+        console.log("fields,", fields[0]);
+          
+        let orderMsg = msgContent
+        massege = leads.map((lead) => {
+          fields.forEach(field=>{
+            orderMsg = orderMsg.replaceAll(new RegExp("\\@" + field, "g"), lead[field]);
+          })
+          
+          return {lead:lead._id, msgId ,content:orderMsg}
+        });
      }
     //  console.log( massege);
      return  massege;
