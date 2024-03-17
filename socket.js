@@ -42,26 +42,26 @@ function createWhatsAppClient(clientId,io, socket) {
     client.initialize().then().catch((e) => {
       console.log(e)
     });
-    clients[clientId].bot = client;
-    return clients[clientId];
-  }
-
-
+  clients[clientId].bot = client;
+  return clients[clientId];
+}
 
 const createServer = async (server) => {
-    const io = new Server(server,{
-        cors: {
-            origin: 'http://localhost:5173',
-            methods: ['GET', 'POST'],
-            credentials: true,
-        },
-    });
+  const io = new Server(server, {
+    cors: {
+      origin: "http://localhost:5173",
+      methods: ["GET", "POST"],
+      credentials: true,
+    },
+  });
 
-    io.on('connection', (socket) => {
-        id = socket.handshake.auth.userData ? socket.handshake.auth.userData._id:''
-        createWhatsAppClient(id, io, socket);
-        // socketRouter(io, socket, client, clients,id);
-    })
+  io.on("connection", (socket) => {
+    id = socket.handshake.auth.userData
+      ? socket.handshake.auth.userData._id
+      : "";
+    createWhatsAppClient(id, io, socket);
+    // socketRouter(io, socket, client, clients,id);
+  });
 
     server.listen(3000, () => {
         createNewQueue()

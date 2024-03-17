@@ -2,24 +2,21 @@ const mongoose = require("mongoose");
 
 const receivedMsg = new mongoose.Schema({
   leadId: {
-    type: mongoose.SchemaTypes.ObjectId
+    type: mongoose.SchemaTypes.ObjectId,
   },
   msgId: {
-    type: mongoose.SchemaTypes.ObjectId
-
+    type: mongoose.SchemaTypes.ObjectId,
   },
   status: {
     type: String,
     enum: ["created", "sent", "received"],
     default: "created",
-
   },
   sentData: {
     type: Date,
-    default: Date.now
-  }
-
-})
+    default: Date.now,
+  },
+});
 const leadSchema = new mongoose.Schema({
   fName: {
     type: String,
@@ -31,7 +28,7 @@ const leadSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    default: ''
+    default: "",
     // ???OK
   },
   phone: {
@@ -40,7 +37,7 @@ const leadSchema = new mongoose.Schema({
   },
   notes: {
     type: String,
-    default: ''
+    default: "",
   },
   joinDate: {
     type: Date,
@@ -50,7 +47,6 @@ const leadSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
-
 });
 const msgSchema = new mongoose.Schema({
   subject: {
@@ -72,16 +68,23 @@ const msgSchema = new mongoose.Schema({
   // TODO: check if this property needs to be removed
   status: {
     type: String,
-    enum: ["created", "sent", "received", 'isSending', 'isAwaitToSend', 'isSchedules', 'isFinishToSend'],
+    enum: [
+      "created",
+      "sent",
+      "received",
+      "isSending",
+      "isAwaitToSend",
+      "isSchedules",
+      "isFinishToSend",
+    ],
     default: "created",
-
-  }
+  },
 });
 
 const campaignSchema = new mongoose.Schema({
   user: {
     type: mongoose.SchemaTypes.ObjectId,
-    ref: 'user',
+    ref: "user",
     default: "65ba97e536d6af41e9beb0d1",
   },
   title: {
@@ -90,7 +93,6 @@ const campaignSchema = new mongoose.Schema({
   },
   details: {
     type: String,
-
   },
   isActive: {
     type: Boolean,
@@ -106,11 +108,7 @@ const campaignSchema = new mongoose.Schema({
   msg: [msgSchema],
   leads: [leadSchema],
   receivedMsgs: [receivedMsg],
-
-
-
 });
 
 const campaignModel = mongoose.model("campaign", campaignSchema);
 module.exports = campaignModel;
-
