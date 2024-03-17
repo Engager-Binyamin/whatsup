@@ -31,7 +31,7 @@ async function getDetailsToSend(campaignId, msgId) {
   let leadsArr = [];
   campaign.leads.map((lead) => {
     if (lead.isActive == true) {
-      leadsArr.push(lead._id);
+      leadsArr.push(lead);
     }
   });
   let msgContent = msg.content;
@@ -45,15 +45,14 @@ async function getDetailsToSend(campaignId, msgId) {
 
 function injectionDataToMsg(msg) {
   const { leadsArr, msgId, msgContent } = msg;
-
   if (!msgContent.includes("@")) {
     massege = leadsArr.map((lead) => {
       return { lead: lead._id, msgId, msgContent: msgContent };
     });
     return massege;
   } else {
-    const fields = Object.keys(leadsArr[0]);
-
+    const fields = leadsArr[0];
+    console.log({ fields });
     massege = leadsArr.map((lead) => {
       let namePattern = new RegExp("\\@" + fields[0], "g");
       let orderMsg = msgContent.replaceAll(namePattern, lead.fullName);
@@ -61,7 +60,6 @@ function injectionDataToMsg(msg) {
       orderMsg = orderMsg.replaceAll(emailPattern, lead.email);
       let phonePattern = new RegExp("\\@" + fields[2], "g");
       orderMsg = orderMsg.replaceAll(phonePattern, lead.phone);
-      console.log(orderMsg);
       return { lead: lead._id, msgId, content: orderMsg };
     });
   }
