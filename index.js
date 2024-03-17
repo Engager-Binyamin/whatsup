@@ -18,8 +18,8 @@ app.use(cors({
 const { route } = require('./router.sendMessage');
 
 
-// const  miriamTest  = require('./msgQueue.service2');
-// app.use('/miriamTest', miriamTest)
+const  miriamTest  = require('./msgQueue.service2');
+app.use('/miriamTest', miriamTest)
 
 
 

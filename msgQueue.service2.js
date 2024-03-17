@@ -1,33 +1,43 @@
 const msgQueueController = require('./DL/controllers/msgQueue.controller')
 
-let msgSchedule = []
-let queue = []
+let msgSchedule = {}
+let queue = {}
 
-function checkTimeMsg(msg){
+function checkTimeMsg(msg, userId) {
     let now = new Date().getTime()
     if (msg.timeToSend <= now) {
-        if (queue.length > 0) {
-            queue.push(msg)
+        if (queue[userId]?.length > 0) {
+            queue[userId]?.push(msg)
         } else {
-            queue.push(msg)
-            sendQueue()
+            queue[userId]?.push(msg)
+            sendQueue(userId)
         }
     }
     else {
-        if (msgSchedule.length > 0) {
-            msgSchedule.push(msg)
+        if (msgSchedule[userId]?.length > 0) {
+            msgSchedule[userId]?.push(msg)
         } else {
-            msgSchedule.push(msg)
-            schedule()
+            console.log('🤡');
+            msgSchedule[userId]?.push(msg)
+            schedule(userId)
         }
     }
+    // console.log({ queue, msgSchedule, luli: queue['65ed9c525b51ed6b4bd16107'] });
 }
 
 // אם השרת קרס
-async function createNewQueue() {
-    let msgs = await msgQueueController.read({})
-    msgs.forEach(ms => checkTimeMsg(ms))
+async function createNewQueue(_id = '65ed9c525b51ed6b4bd16107',newMsgs) {
+    let msgs 
+    if (!queue[_id]) queue[_id] = []
+    if (!msgSchedule[_id]) msgSchedule[_id] = []
+    if(!newMsgs)
+    msgs = await msgQueueController.read({ userId:_id })
+    else 
+        msgs = newMsgs
+    msgs.forEach(ms => { 
+        checkTimeMsg(ms, _id)})
 }
+
 // מוסיף את ההודעות לDB מופעל עבור כל הודעה שנכנסת ל addMsgToQueue 
 async function addMsgToDB(msg) {
     let { userId, leadId, campaignId, contentMsg } = msg
@@ -37,7 +47,7 @@ async function addMsgToDB(msg) {
     } else {
         timeToSend = new Date().getTime()
     }
-    msgQueueController.create({
+    return msgQueueController.create({
         userId,
         leadId,
         campaignId,
@@ -45,29 +55,38 @@ async function addMsgToDB(msg) {
         timeToSend
     })
 }
+
 // הוספת הודעות
-async function addMsgToQueue(arrMsg) {
-    arrMsg.forEach(ms => {
-        addMsgToDB(ms)
-        checkTimeMsg(ms)
-    })
+async function addMsgToQueue(arrMsg, userId) {
+    let newMsgs = await Promise.all(arrMsg.map(async (ms) => {
+        let msg = await addMsgToDB(ms)
+        return msg
+    }))
+    await createNewQueue(userId,newMsgs)
 }
 
 // מנהל תזמון - כשמגיע התזמון - מכניס את ההודעה לתור
-async function schedule() {
-    msgSchedule = msgSchedule.sort((a, b) => a.timeToSend - b.timeToSend)
-    if (msgSchedule.length > 0) {
+async function schedule(userId) {
+    console.log({userId, msgSchedule});
+    console.log('🪻🪻');
+    console.log(msgSchedule[userId]);
+    msgScheduleByUser = msgSchedule[userId]?.sort((a, b) => a.timeToSend - b.timeToSend)
+    console.log({msgScheduleByUser});
+    if (msgSchedule[userId]?.length > 0) {
+
+        console.log(msgSchedule[userId][0].timeToSend)
+
         let now = new Date().getTime()
-        let timeAwait = msgSchedule[0].timeToSend - now
+        let timeAwait = msgSchedule[userId][0].timeToSend - now
         // אם במקרה הזמן כבר עבר - הוא יוסיף אותו ישר לתחילת התור.
         setTimeout(() => {
-            if (queue.length > 0) {
-                queue.unshift(msgSchedule[0])
+            if (queue[userId]?.length > 0) {
+                queue[userId]?.unshift(msgSchedule[0])
             } else {
-                queue.unshift(msgSchedule[0])
-                sendQueue()
+                queue[userId]?.unshift(msgSchedule[0])
+                sendQueue(userId)
             }
-            msgSchedule.shift()
+            msgSchedule[userId]?.shift()
         }
             , timeAwait)
     } else {
@@ -79,13 +98,13 @@ function eliraz(data) {
     console.log('💐💐💐');
 }
 // שולח את התור 
-async function sendQueue() {
-    if (queue.length > 0 ) {
-        eliraz(queue[0])
-        // לא מחקתי מהDB כי לא ידעתי בוודאות שזה נשלח.
+async function sendQueue(userId) {
+    if (queue[userId]?.length > 0) {
+        eliraz(queue[userId][0])
         setTimeout(() => {
-            queue.shift()
-            sendQueue()
+            // msgQueueController.del(queue[userId][0]._id)
+            queue[userId].shift()
+            sendQueue(userId)
 
         }
             , 6000)
@@ -108,14 +127,14 @@ let luli = [
     {
         userId: '65ed9c525b51ed6b4bd16107',
         leadId: '65f1d47cd1041bf650cfaf4f',
-        contentMsg: 'yeeeeeeeeeee',
+        contentMsg: 'yooooooooooooooooooo',
         timeToSend: 1710420624627,
         campaignId: '65eda5d5a53246c4f887ce33'
     },
     {
         userId: '65ed9c525b51ed6b4bd16107',
         leadId: '65f1d47cd1041bf650cfaf4f',
-        contentMsg: 'yeeeeeeeeeee',
+        contentMsg: 'yllllllllllllllleee',
         timeToSend: 1710420624627,
         campaignId: '65eda5d5a53246c4f887ce33'
     }
@@ -123,14 +142,13 @@ let luli = [
 
 
 const express = require("express");
+const { use } = require('./msgQueue.service2')
 const router = express.Router();
 
 router.get('/', async (req, res) => {
     try {
-        await createNewQueue()
-        // console.log({ queue, msgSchedule });
         // addMsgToQueue(luli)
-        // sendQueue()
+        await createNewQueue()
         res.send('🪻🪻🪻')
     } catch (error) {
         res.send(error)
