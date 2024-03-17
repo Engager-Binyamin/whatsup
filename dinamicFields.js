@@ -10,7 +10,7 @@ function dinamicInput(msg) {
        return  massege
      } else {
        const fields = Object.keys(leads[0]);
-    //    console.log("fields,", fields[0]);
+  
        massege = leads.map((lead) => {
          
          let namePattern = new RegExp("\\@" + fields[0], "g");
