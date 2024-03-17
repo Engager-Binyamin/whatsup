@@ -28,41 +28,46 @@ async function getDetailsToSend(campaignId, msgId) {
   if (!campaign) throw { msg: "no messeges in this campaign", code: 404 };
 
   let msg = campaign.msg.find((m) => m._id == msgId);
+  // console.log("msg in details:", msg);
   let leadsArr = [];
   campaign.leads.map((lead) => {
     if (lead.isActive == true) {
       leadsArr.push(lead);
     }
   });
-  let msgContent = msg.content;
-  // console.log("msgC", msgContent);
-  return {
-    leadsArr,
-    msgId,
-    msgContent,
-  };
+// console.log("leadsArr in first function", leadsArr);
+let msgContent = msg.content;
+// console.log("msgC", msgContent);
+return {
+  leadsArr,
+  msgId,
+  msgContent,
+};
 }
 
 function injectionDataToMsg(msg) {
   const { leadsArr, msgId, msgContent } = msg;
+  const newLeads = leadsArr.map(l=>{return {...l._doc}})
+  // console.log("leadsArr in second function",  newLeads);
+
   if (!msgContent.includes("@")) {
     massege = leadsArr.map((lead) => {
       return { lead: lead._id, msgId, msgContent: msgContent };
     });
     return massege;
   } else {
-    const fields = leadsArr[0];
-    console.log({ fields });
-    massege = leadsArr.map((lead) => {
-      let namePattern = new RegExp("\\@" + fields[0], "g");
-      let orderMsg = msgContent.replaceAll(namePattern, lead.fullName);
-      let emailPattern = new RegExp("\\@" + fields[1], "g");
-      orderMsg = orderMsg.replaceAll(emailPattern, lead.email);
-      let phonePattern = new RegExp("\\@" + fields[2], "g");
-      orderMsg = orderMsg.replaceAll(phonePattern, lead.phone);
-      return { lead: lead._id, msgId, content: orderMsg };
+    const fields = Object.keys(newLeads[0]);
+    // console.log( fields );
+    massege = newLeads.map((lead) => {
+      let orderMsg = msgContent
+      fields.forEach(field=>{
+        orderMsg = orderMsg.replaceAll(new RegExp("\\@" +field, "g"), lead[field]);
+      })
+      
+      return {lead:lead._id, msgId ,content:orderMsg}
     });
   }
+  console.log(massege);
   return massege;
 }
 module.exports = { sendMessage, getDetailsToSend };
