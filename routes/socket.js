@@ -1,6 +1,6 @@
 const { Server } = require("socket.io");
-const { socketRouter } = require("./functions/clientInitialize");
-const userModel = require("./DL/models/user.model");
+const { socketRouter } = require("../functions/clientInitialize");
+const userModel = require("../DL/models/user.model");
 const { Client, LocalAuth } = require("whatsapp-web.js");
 
 const clients = {};

@@ -11,14 +11,8 @@ const mainRouter = express.Router();
 
 mainRouter.post("/send", async (req, res) => {
   try {
-    const idCamp = req.params.idCamp;
-    const msgId = req.params.msgId;
-    const msg = await campaignService.sendSpecificMsgToCampaignLeads(
-      idCamp,
-      msgId,
-      "05057095558"
-    );
-    res.send(qr);
+    let data = req.data;
+    const msg = await ORNA(data);
   } catch (err) {
     res.send(err);
   }

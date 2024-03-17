@@ -5,7 +5,7 @@ const app = express();
 const db = require("./DL/db");
 db.connect();
 app.use(express.json());
-const { createServer } = require("./socket");
+const { createServer } = require("./routes/socket");
 const http = require("http");
 const mainRouter = require("./routes");
 
