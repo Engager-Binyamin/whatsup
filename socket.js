@@ -2,6 +2,7 @@ const { Server } = require('socket.io');
 const { socketRouter } = require('./clientInitialize');
 const userModel = require('./DL/models/user.model');
 const { Client, LocalAuth } = require('whatsapp-web.js');
+const qrcode = require('qrcode-terminal');
 
 
 const clients = {"65ed9c525b51ed6b4bd16107":{},"123456789":{}, "65eeca187d0944e92ab44179":{}};
