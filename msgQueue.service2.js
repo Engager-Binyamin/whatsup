@@ -129,7 +129,7 @@ async function sendQueue(userId) {
         if (queue[userId]?.length > 0) {
             sentOneMsg(queue[userId][0])
             setTimeout(() => {
-                // msgQueueController.del(queue[userId][0]._id)
+                msgQueueController.del(queue[userId][0]._id)
                 queue[userId].shift()
                 sendQueue(userId)
     
@@ -188,4 +188,4 @@ router.get('/', async (req, res) => {
 })
 
 
-module.exports = {createNewQueue}
+module.exports = {createNewQueue,addMsgToQueue}

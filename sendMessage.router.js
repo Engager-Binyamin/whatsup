@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { clients } = require('./socket'); // יבוא משתנה clients מקובץ ה socket
+const { clients } = require('./clients'); // יבוא משתנה clients מקובץ ה socket
+const { addMsgToQueue } = require('./msgQueue.service2');
 
 router.get('/:botId/:message', async (req, res) => {
     const client = clients[req.params.botId];
@@ -9,7 +10,30 @@ router.get('/:botId/:message', async (req, res) => {
     }
 
     try {
-        await client.bot.sendMessage("972503210090@c.us", req.params.message);
+        await addMsgToQueue([
+            {
+                userId: '65ed9c525b51ed6b4bd16107',
+                leadId: '65eda5d5a53246c4f887ce37',
+                contentMsg: 'yeeeeeeeeeee',
+                timeToSend: 1710420624627,
+                campaignId: '65eda5d5a53246c4f887ce33'
+            },
+            {
+                userId: '65ed9c525b51ed6b4bd16107',
+                leadId: '65eda5d5a53246c4f887ce37',
+                contentMsg: 'yooooooooooooooooooo',
+                timeToSend: 1710420624627,
+                campaignId: '65eda5d5a53246c4f887ce33'
+            },
+            {
+                userId: '65ed9c525b51ed6b4bd16107',
+                leadId: '65eda5d5a53246c4f887ce37',
+                contentMsg: 'yllllllllllllllleee',
+                timeToSend: 1710420624627,
+                campaignId: '65eda5d5a53246c4f887ce33'
+            }
+        ],'65ed9c525b51ed6b4bd16107'
+        )
         return res.status(200).send('Message sent successfully');
     } catch (error) {
         console.error('Error sending message:', error);

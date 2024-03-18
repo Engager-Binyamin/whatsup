@@ -74,7 +74,4 @@ async function sendNewMessage(data ) {
   else return "client is not ready";
 }
 
-
-
-
 module.exports={sendNewMessage}
