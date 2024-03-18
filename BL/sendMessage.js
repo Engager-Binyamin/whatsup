@@ -52,7 +52,6 @@ function injectionDataToMsg(msg) {
     return massege;
   } else {
     const fields = leadsArr[0];
-    console.log({ fields });
     massege = leadsArr.map((lead) => {
       let namePattern = new RegExp("\\@" + fields[0], "g");
       let orderMsg = msgContent.replaceAll(namePattern, lead.fullName);
