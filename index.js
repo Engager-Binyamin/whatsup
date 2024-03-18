@@ -22,8 +22,3 @@ app.use(
 app.use("/sendmessage", router); // ראוט עבור שליחת הודעות
 // let fakeCampaign = {campaignId:"65eda5d5a53246c4f887ce33","65eda5d5a53246c4f887ce34"}
 createServer(server);
-sendMessage({
-  user: "65ed9c525b51ed6b4bd16107",
-  campaignId: "65eda5d5a53246c4f887ce33",
-  msgId: "65f69dabd3c8fc298aceb940",
-});

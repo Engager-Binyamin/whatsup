@@ -7,14 +7,15 @@ const campaignController = require("../DL/controllers/campaign.controller");
 // מעביר לפונ' הזרקת משתנים דינאמיים - אריה
 // שומר כל הודעה בטבלת "תור עבודה" לפי אלגוריתם של דיליי - מרים
 
-async function sendMessage(body) {
+async function sendMessage(msg) {
   // body - user id,campaign id, massage id,
   try {
-    const { user, campaignId, msgId } = body;
+    console.log({ msg: msg });
+    const { user, campaignId, msgId } = msg;
     let details = await getDetailsToSend(campaignId, msgId);
     let msgToSend = await injectionDataToMsg(details);
-    // console.log(msgToSend);
-    // let result = await sendMessageToQuete(user, campaignId, msgToSend);
+    let result = await sendMessageToQuete(user, campaignId, msgToSend);
+    return result;
   } catch (err) {}
 }
 
@@ -35,7 +36,6 @@ async function getDetailsToSend(campaignId, msgId) {
     }
   });
   let msgContent = msg.content;
-  // console.log("msgC", msgContent);
   return {
     leadsArr,
     msgId,
