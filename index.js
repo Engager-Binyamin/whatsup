@@ -8,7 +8,6 @@ app.use(express.json());
 const http = require("http");
 const { createServer, clients } = require("./socket"); // כאן מייבאים את createServer ואת המשתנה clients מקובץ ה socket
 const router = require("./sendMessage.router"); // נייבא את הראוטר המוגדר בקובץ router.js
-const { getDetailsToSend, sendMessage } = require("./BL/sendMessage");
 
 const server = http.createServer(app);
 app.use("/messages", router);
