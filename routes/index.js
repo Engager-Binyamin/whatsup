@@ -12,7 +12,6 @@ const mainRouter = express.Router();
 mainRouter.post("/send", async (req, res) => {
   try {
     let data = req.data;
-    const msg = await ORNA(data);
   } catch (err) {
     res.send(err);
   }

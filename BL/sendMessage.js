@@ -1,4 +1,5 @@
 const campaignController = require("../DL/controllers/campaign.controller");
+const { addMsgToQueue } = require("./msgQueue.service");
 
 // /message/send
 // מקבל user כטוקן
@@ -7,14 +8,24 @@ const campaignController = require("../DL/controllers/campaign.controller");
 // מעביר לפונ' הזרקת משתנים דינאמיים - אריה
 // שומר כל הודעה בטבלת "תור עבודה" לפי אלגוריתם של דיליי - מרים
 
-async function sendMessage(body) {
+async function sendMessageService(msg) {
   // body - user id,campaign id, massage id,
   try {
-    const { user, campaignId, msgId } = body;
+    console.log({ msg: msg });
+    const { userId, campaignId, msgId, timeToSend } = msg;
     let details = await getDetailsToSend(campaignId, msgId);
     let msgToSend = await injectionDataToMsg(details);
-    // console.log(msgToSend);
-    // let result = await sendMessageToQuete(user, campaignId, msgToSend);
+    let messagesToQueue = msgToSend.map((msg) => {
+      return {
+        msgId: msg.msgId,
+        userId,
+        leadId: msg.leadId,
+        contentMsg: msg.content,
+        timeToSend: timeToSend || Date.now(),
+        campaignId,
+      };
+    });
+    addMsgToQueue(messagesToQueue, userId);
   } catch (err) {}
 }
 
@@ -35,7 +46,6 @@ async function getDetailsToSend(campaignId, msgId) {
     }
   });
   let msgContent = msg.content;
-  // console.log("msgC", msgContent);
   return {
     leadsArr,
     msgId,
@@ -47,12 +57,11 @@ function injectionDataToMsg(msg) {
   const { leadsArr, msgId, msgContent } = msg;
   if (!msgContent.includes("@")) {
     massege = leadsArr.map((lead) => {
-      return { lead: lead._id, msgId, msgContent: msgContent };
+      return { leadId: lead._id, msgId, content: msgContent };
     });
     return massege;
   } else {
     const fields = leadsArr[0];
-    console.log({ fields });
     massege = leadsArr.map((lead) => {
       let namePattern = new RegExp("\\@" + fields[0], "g");
       let orderMsg = msgContent.replaceAll(namePattern, lead.fullName);
@@ -60,9 +69,9 @@ function injectionDataToMsg(msg) {
       orderMsg = orderMsg.replaceAll(emailPattern, lead.email);
       let phonePattern = new RegExp("\\@" + fields[2], "g");
       orderMsg = orderMsg.replaceAll(phonePattern, lead.phone);
-      return { lead: lead._id, msgId, content: orderMsg };
+      return { leadId: lead._id, msgId, content: orderMsg };
     });
   }
   return massege;
 }
-module.exports = { sendMessage, getDetailsToSend };
+module.exports = { sendMessage: sendMessageService, getDetailsToSend };
