@@ -1,4 +1,5 @@
 const {clients} = require('../clients.js')
+const campaignController = require('../DL/controllers/campaign.controller.js')
 
 let isSending = false;
 
@@ -17,22 +18,36 @@ async function sendNewMessage(data ) {
     let messageId;
     let sentMessage;
     // Define the event listener functions
-    const sendListener = (msg) => {
+    const sendListener =async (msg) => {
       if (msg.id.fromMe && msg.to === chatId) {
         messageId = msg.id.id;
         sentMessage = msg;
         console.log(`Message with ID ${messageId} was sent to ${chatId}`);
       }
     };
-    const ackListener = (msg, ack) => {
+    const ackListener = async(msg, ack) => {
+
+      const campaign = await campaignController.readOne({_id: newData.campaignId})
+      if (!campaign) throw 'error'
+      let received = campaign.receivedMsgs.find(re=> String(re._id) == String(newData.receivedId))
+      if (!received) throw 'error'
+
+      
       if (msg.id.id === messageId) {
         if (ack === 1) {
-            console.log(`Message with ID ${messageId} was sent`)
+          console.log(`Message with ID ${messageId} was sent`)
+          received.status = 'sent'
+          received.sentData = Date.now()
+          campaign.save()
         }else if (ack === 2) {
           console.log(`Message with ID ${messageId} was received by ${chatId}`);
+          received.status = 'received'
+          campaign.save()
           isSending = false; // Set isSending to false when the message is received
         } else if (ack === 3) {
           console.log(`Message with ID ${messageId} was read by ${chatId}`);
+          // received.status = 'read'
+          // campaign.save()
         } else{
             console.log("something ins't right")
         }
