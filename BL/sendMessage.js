@@ -1,6 +1,6 @@
 const campaignController = require("../DL/controllers/campaign.controller");
 const { addMsgToQueue } = require("./msgQueue.service");
-
+const { isValidObjectId } = require("../functions/helper");
 // /message/send
 // מקבל user כטוקן
 // מקבל מזהה קמפיין ומזהה הודעה
@@ -9,9 +9,7 @@ const { addMsgToQueue } = require("./msgQueue.service");
 // שומר כל הודעה בטבלת "תור עבודה" לפי אלגוריתם של דיליי - מרים
 
 async function sendMessageService(msg) {
-  // body - user id,campaign id, massage id,
   try {
-    console.log({ msg: msg });
     const { userId, campaignId, msgId, timeToSend } = msg;
     let details = await getDetailsToSend(campaignId, msgId);
     let msgToSend = await injectionDataToMsg(details);
@@ -26,12 +24,19 @@ async function sendMessageService(msg) {
       };
     });
     addMsgToQueue(messagesToQueue, userId);
-  } catch (err) {}
+  } catch (err) {
+    console.log(err);
+    return err;
+  }
 }
 
 async function getDetailsToSend(campaignId, msgId) {
   // שולפת לידים שלא קיבלו הודעה והם פעילים
   //  שולפת את ההודעה המלאה
+  if (!isValidObjectId(campaignId)) throw { code: 401, msg: "inValid _id" };
+  if (!isValidObjectId(msgId)) throw { code: 401, msg: "inValid msg_id" };
+  if (!campaignId) throw { code: 404, msg: "No campaign found" };
+  if (!msgId) throw { code: 404, msg: "No msg found" };
   let campaign = await campaignController.readOne({
     _id: campaignId,
     "msg._id": msgId,
@@ -74,4 +79,4 @@ function injectionDataToMsg(msg) {
   }
   return massege;
 }
-module.exports = { sendMessage: sendMessageService, getDetailsToSend };
+module.exports = { sendMessageService, getDetailsToSend };

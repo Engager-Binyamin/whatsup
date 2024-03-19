@@ -18,5 +18,5 @@ app.use(
     credentials: true,
   })
 );
-app.use("/", mainRouter);
+app.use("/whatsupserver", mainRouter);
 createServer(server);
