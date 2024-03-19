@@ -71,6 +71,7 @@ async function addMsgToDB(msg) {
 
 // הוספת הודעות
 async function addMsgToQueue(arrMsg, userId) {
+  // console.log(arrMsg, userId);
   try {
     let newMsgs = await Promise.all(
       arrMsg.map(async (ms) => {
@@ -196,7 +197,7 @@ let luli = [
 
 const express = require("express");
 const { use } = require("./msgQueue.service");
-const { sendNewMessage } = require("./sendmessage.service");
+const { sendNewMessage } = require("./sendToWhatsUp");
 const {
   readOne,
   readOneWithoutPopulate,

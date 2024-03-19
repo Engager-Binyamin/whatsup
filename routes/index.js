@@ -1,6 +1,6 @@
 const express = require("express");
 const mainRouter = express.Router();
-
+const { sendMessageService } = require("../BL/sendMessage");
 // message/send/
 // שליחת הודעה יזומה
 //  מקבל יוזר כטוקן
@@ -11,8 +11,14 @@ const mainRouter = express.Router();
 
 mainRouter.post("/send", async (req, res) => {
   try {
-    let data = req.data;
+    let msg = {
+      userId: req.body.userId,
+      campaignId: req.body.campaignId,
+      msgId: req.body.msgId,
+    };
+    sendMessageService(msg);
   } catch (err) {
+    console.log(err);
     res.send(err);
   }
 });
