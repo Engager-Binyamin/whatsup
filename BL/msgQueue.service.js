@@ -1,12 +1,13 @@
 const msgQueueController = require("../DL/controllers/msgQueue.controller");
 const campaignController = require("../DL/controllers/campaign.controller");
 const { sockets } = require('../sockets');
+const { sendNewMessage } = require('./sendToWhatsUp')
 
 let msgSchedule = {};
 let queue = {};
 
-function sendDataInSocket(userId){
-  const dataToClient = {queue, msgSchedule}
+function sendDataInSocket(userId) {
+  const dataToClient = { queue, msgSchedule }
   sockets[userId].emit('queue', dataToClient)
 }
 
@@ -35,13 +36,14 @@ function checkTimeMsg(msg, userId) {
 }
 
 // אם השרת קרס
-async function createNewQueue(userId = "65ed9c525b51ed6b4bd16107",newMsgs = undefined) {
+async function createNewQueue(userId) {
   try {
     let msgs;
-    if (!queue[userId]) queue[userId] = [];
-    if (!msgSchedule[userId]) msgSchedule[userId] = [];
-    if (!newMsgs) msgs = await msgQueueController.read({ userId: userId });
-    else msgs = newMsgs;
+    // if (!queue[userId]) queue[userId] = [];
+    // if (!msgSchedule[userId]) msgSchedule[userId] = [];
+    queue[userId] = []
+    msgSchedule[userId] = []
+    msgs = await msgQueueController.read({ userId: userId });
     msgs.forEach((ms) => {
       checkTimeMsg(ms, userId);
     });
@@ -91,9 +93,7 @@ async function addMsgToQueue(arrMsg, userId) {
 // מנהל תזמון - כשמגיע התזמון - מכניס את ההודעה לתור
 async function schedule(userId) {
   try {
-    msgScheduleByUser = msgSchedule[userId]?.sort(
-      (a, b) => a.timeToSend - b.timeToSend
-    );
+    msgScheduleByUser = msgSchedule[userId]?.sort((a, b) => a.timeToSend - b.timeToSend);
     if (msgSchedule[userId]?.length > 0) {
       let now = new Date().getTime();
       let timeAwait = msgSchedule[userId][0].timeToSend - now;
@@ -107,7 +107,7 @@ async function schedule(userId) {
         }
         msgSchedule[userId]?.shift();
         sendDataInSocket(userId)
-        
+
       }, timeAwait);
     } else {
     }
@@ -149,10 +149,17 @@ async function createReceideMsg(userId) {
     leadId: msg.leadId,
     msgId: msg.msgId,
   };
-  return await campaignController.updateOne(
-    { _id: msg.campaignId },
-    { $push: { receivedMsgs: data } }
-  );
+  let campaign = await campaignController.readOne({ _id: msg.campaignId })
+  let isExits = campaign.receivedMsgs.find(re => {
+    return String(re.leadId) == String(msg.leadId) &&
+      String(re.msgId) == String(msg.msgId)
+  })
+  if (!isExits) {
+    return await campaignController.updateOne(
+      { _id: msg.campaignId },
+      { $push: { receivedMsgs: data } }
+    );
+  }
 }
 
 // שולח את התור
@@ -162,14 +169,13 @@ async function sendQueue(userId) {
       await createReceideMsg(userId);
       sentOneMsg(queue[userId][0]);
       setTimeout(async () => {
-        // await msgQueueController.del(queue[userId][0]._id);
+        await msgQueueController.del(queue[userId][0]._id);
         queue[userId].shift();
         sendDataInSocket(userId)
         sendQueue(userId);
       }, 6000);
     } else {
       return;
-      // console.log('🌹🌹🌹');
     }
   } catch (error) {
     console.log(error);
@@ -184,7 +190,7 @@ let luli = [
     contentMsg: "yeeeeeeeeeee",
     timeToSend: 1710420624627,
     campaignId: "65eda5d5a53246c4f887ce33",
-    msgId:''
+    msgId: ''
   },
   {
     userId: "65ed9c525b51ed6b4bd16107",
@@ -192,7 +198,7 @@ let luli = [
     contentMsg: "yooooooooooooooooooo",
     timeToSend: 1710420624627,
     campaignId: "65eda5d5a53246c4f887ce33",
-    msgId:''
+    msgId: ''
   },
   {
     userId: "65ed9c525b51ed6b4bd16107",
@@ -200,7 +206,7 @@ let luli = [
     contentMsg: "yllllllllllllllleee",
     timeToSend: 1710420624627,
     campaignId: "65eda5d5a53246c4f887ce33",
-    msgId:''
+    msgId: ''
   },
 ];
 
