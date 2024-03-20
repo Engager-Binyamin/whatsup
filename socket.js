@@ -2,8 +2,9 @@ const { Server } = require("socket.io");
 const userModel = require("./DL/models/user.model");
 const { Client, LocalAuth } = require("whatsapp-web.js");
 const qrcode = require("qrcode-terminal");
-const { createNewQueue } = require("./BL/msgQueue.service");
+const { createNewQueue,} = require("./BL/msgQueue.service");
 const { clients } = require("./clients");
+const { sockets } = require("./sockets");
 let client;
 let id;
 function createWhatsAppClient(clientId, io, socket) {
@@ -65,10 +66,12 @@ const createServer = async (server) => {
       : "";
     createWhatsAppClient(id, io, socket);
     // socketRouter(io, socket, client, clients,id);
+    sockets[id] = socket
   });
 
   server.listen(3000, () => {
     createNewQueue();
+    // צריך לשלוח userId!!
     console.log("listening on *:3000");
   });
 };
