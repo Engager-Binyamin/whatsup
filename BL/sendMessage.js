@@ -8,7 +8,7 @@ const { isValidObjectId } = require("../functions/helper");
 // מעביר לפונ' הזרקת משתנים דינאמיים - אריה
 // שומר כל הודעה בטבלת "תור עבודה" לפי אלגוריתם של דיליי - מרים
 
-async function sendMessageService(msg) {
+async function sendMessageService(msg, res) {
   try {
     const { userId, campaignId, msgId, timeToSend } = msg;
     let details = await getDetailsToSend(campaignId, msgId);
@@ -23,6 +23,7 @@ async function sendMessageService(msg) {
         campaignId,
       };
     });
+    res.send("In Progress");
     addMsgToQueue(messagesToQueue, userId);
   } catch (err) {
     console.log(err);

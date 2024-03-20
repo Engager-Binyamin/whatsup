@@ -1,6 +1,8 @@
 const express = require("express");
 const mainRouter = express.Router();
 const { sendMessageService } = require("../BL/sendMessage");
+const { sendToWhatsUp } = require("../BL/sendToWhatsUp");
+
 // message/send/
 // שליחת הודעה יזומה
 //  מקבל יוזר כטוקן
@@ -16,7 +18,25 @@ mainRouter.post("/send", async (req, res) => {
       campaignId: req.body.campaignId,
       msgId: req.body.msgId,
     };
-    sendMessageService(msg);
+    sendMessageService(msg, res);
+  } catch (err) {
+    console.log(err);
+    res.send(err);
+  }
+});
+
+// /verification
+// אישור משתמש על ידי צבי
+//  מקבל משתמש וקישור עם טוקן
+// שולח הודעת  התנעה עם קישור ובקשה לאישור
+mainRouter.post("/send/verify", async (req, res) => {
+  try {
+    let msg = {
+      userId: req.body.userId,
+      campaignId: req.body.campaignId,
+      msgId: req.body.msgId,
+    };
+    sendToWhatsUp(msg);
   } catch (err) {
     console.log(err);
     res.send(err);

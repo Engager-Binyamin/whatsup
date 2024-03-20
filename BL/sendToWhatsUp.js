@@ -4,7 +4,6 @@ const campaignController = require("../DL/controllers/campaign.controller.js");
 let isSending = false;
 
 async function sendNewMessage(data) {
-  console.log(data);
   let client = clients[data.userID];
   // const rtrnData = {
   //   _idL: data._idL,
@@ -20,6 +19,7 @@ async function sendNewMessage(data) {
       let sentMessage;
       // Define the event listener functions
       const sendListener = async (msg) => {
+        console.log(msg);
         if (msg.id.fromMe && msg.to === chatId) {
           messageId = msg.id.id;
           sentMessage = msg;
@@ -93,7 +93,7 @@ async function sendNewMessage(data) {
       // Remove the logging of `sentMessage.ack`
     } catch (error) {
       console.error("Error sending message:", error);
-      io.emit("send", { message: "Error sending message" });
+      // io.emit("send", { message: "Error sending message" });
       isSending = false; // Set isSending to false if there's an error
     }
   } else return "client is not ready";

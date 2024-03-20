@@ -157,7 +157,7 @@ async function sendQueue(userId) {
       await createReceideMsg(userId);
       sentOneMsg(queue[userId][0]);
       setTimeout(async () => {
-        await msgQueueController.del(queue[userId][0]._id);
+        // await msgQueueController.del(queue[userId][0]._id);
         queue[userId].shift();
         sendQueue(userId);
       }, 6000);

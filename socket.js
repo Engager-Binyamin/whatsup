@@ -4,6 +4,7 @@ const { Client, LocalAuth } = require("whatsapp-web.js");
 const qrcode = require("qrcode-terminal");
 const { createNewQueue } = require("./BL/msgQueue.service");
 const { clients } = require("./clients");
+
 let client;
 let id;
 function createWhatsAppClient(clientId, io, socket) {
@@ -35,6 +36,11 @@ function createWhatsAppClient(clientId, io, socket) {
     socket.emit(`ready`);
   });
 
+  socket.on("logOut", () => {
+    client.logout();
+    console.log(`Session disconnected because of logout`);
+  });
+
   if (client.isReady) {
     client.bot.on("disconnected", (reason) => {
       console.log(`Session disconnected for reason ${reason}`);
@@ -63,7 +69,7 @@ const createServer = async (server) => {
     id = socket.handshake.auth.userData
       ? socket.handshake.auth.userData._id
       : "";
-    createWhatsAppClient(id, io, socket);
+    createWhatsAppClient("65fabd37acea9af662561a1e", io, socket);
     // socketRouter(io, socket, client, clients,id);
   });
 

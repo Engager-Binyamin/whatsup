@@ -2,10 +2,8 @@ const { Server } = require("socket.io");
 const { socketRouter } = require("../functions/clientInitialize");
 const userModel = require("../DL/models/user.model");
 const { Client, LocalAuth } = require("whatsapp-web.js");
+const { clients } = require("../clients");
 
-const clients = {};
-let client;
-let id;
 function createWhatsAppClient(clientId) {
   clients[clientId] = {};
 
@@ -46,7 +44,11 @@ const createServer = async (server) => {
       ? socket.handshake.auth.userData._id
       : "";
     createWhatsAppClient(id);
-    socketRouter(io, socket, client, clients, id);
+    socketRouter(io, socket, clients, id);
+  });
+
+  socket.on("disconnected", (reason) => {
+    console.log(`Session disconnected for reason ${reason}`);
   });
 
   server.listen(3000, () => {
