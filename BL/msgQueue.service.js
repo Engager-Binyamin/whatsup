@@ -1,8 +1,14 @@
 const msgQueueController = require("../DL/controllers/msgQueue.controller");
 const campaignController = require("../DL/controllers/campaign.controller");
+const { sockets } = require('../sockets');
 
 let msgSchedule = {};
 let queue = {};
+
+function sendDataInSocket(userId){
+  const dataToClient = {queue, msgSchedule}
+  sockets[userId].emit('queue', dataToClient)
+}
 
 function checkTimeMsg(msg, userId) {
   try {
@@ -22,24 +28,22 @@ function checkTimeMsg(msg, userId) {
         schedule(userId);
       }
     }
+    sendDataInSocket(userId)
   } catch (error) {
     console.log(error);
   }
 }
 
 // אם השרת קרס
-async function createNewQueue(
-  _id = "65ed9c525b51ed6b4bd16107",
-  newMsgs = undefined
-) {
+async function createNewQueue(userId = "65ed9c525b51ed6b4bd16107",newMsgs = undefined) {
   try {
     let msgs;
-    if (!queue[_id]) queue[_id] = [];
-    if (!msgSchedule[_id]) msgSchedule[_id] = [];
-    if (!newMsgs) msgs = await msgQueueController.read({ userId: _id });
+    if (!queue[userId]) queue[userId] = [];
+    if (!msgSchedule[userId]) msgSchedule[userId] = [];
+    if (!newMsgs) msgs = await msgQueueController.read({ userId: userId });
     else msgs = newMsgs;
     msgs.forEach((ms) => {
-      checkTimeMsg(ms, _id);
+      checkTimeMsg(ms, userId);
     });
   } catch (error) {
     console.log(error);
@@ -71,7 +75,6 @@ async function addMsgToDB(msg) {
 
 // הוספת הודעות
 async function addMsgToQueue(arrMsg, userId) {
-  // console.log(arrMsg, userId);
   try {
     let newMsgs = await Promise.all(
       arrMsg.map(async (ms) => {
@@ -103,6 +106,8 @@ async function schedule(userId) {
           sendQueue(userId);
         }
         msgSchedule[userId]?.shift();
+        sendDataInSocket(userId)
+        
       }, timeAwait);
     } else {
     }
@@ -159,6 +164,7 @@ async function sendQueue(userId) {
       setTimeout(async () => {
         // await msgQueueController.del(queue[userId][0]._id);
         queue[userId].shift();
+        sendDataInSocket(userId)
         sendQueue(userId);
       }, 6000);
     } else {
@@ -178,6 +184,7 @@ let luli = [
     contentMsg: "yeeeeeeeeeee",
     timeToSend: 1710420624627,
     campaignId: "65eda5d5a53246c4f887ce33",
+    msgId:''
   },
   {
     userId: "65ed9c525b51ed6b4bd16107",
@@ -185,6 +192,7 @@ let luli = [
     contentMsg: "yooooooooooooooooooo",
     timeToSend: 1710420624627,
     campaignId: "65eda5d5a53246c4f887ce33",
+    msgId:''
   },
   {
     userId: "65ed9c525b51ed6b4bd16107",
@@ -192,26 +200,8 @@ let luli = [
     contentMsg: "yllllllllllllllleee",
     timeToSend: 1710420624627,
     campaignId: "65eda5d5a53246c4f887ce33",
+    msgId:''
   },
 ];
-
-const express = require("express");
-const { use } = require("./msgQueue.service");
-const { sendNewMessage } = require("./sendToWhatsUp");
-const {
-  readOne,
-  readOneWithoutPopulate,
-} = require("../DL/controllers/campaign.controller");
-const router = express.Router();
-
-router.get("/", async (req, res) => {
-  try {
-    // addMsgToQueue(luli)
-    await createNewQueue();
-    res.send("🪻🪻🪻");
-  } catch (error) {
-    res.send(error);
-  }
-});
 
 module.exports = { createNewQueue, addMsgToQueue };

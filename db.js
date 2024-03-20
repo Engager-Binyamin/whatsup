@@ -8,9 +8,10 @@ async function connect() {
     try {
         await mongoose.connect(MONGO_URL)
         console.log("DB - connection succeeded")
+        
     } catch (error) {
         console.log("MongoDB Error: ", error);
-    }
+    } 
 }
 
 module.exports = {connect}
