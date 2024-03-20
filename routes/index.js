@@ -73,4 +73,15 @@ mainRouter.post("/send/lead/:leadId/", async (req, res) => {
   }
 });
 
+mainRouter.post("/update/jobs", async (req, res) => {
+  try {
+    const userId = req.body.userId;
+    console.log(userId);
+    const result = await msgQueueService.createNewQueue(userId);
+    res.send(`im from the whatsapp this is the user id you sent me:${userId}`);
+  } catch (err) {
+    res.send(err);
+  }
+});
+
 module.exports = mainRouter;
