@@ -7,7 +7,7 @@ const { clients } = require("./clients");
 
 let client;
 let id;
-function createWhatsAppClient(clientId, io, socket) {
+function createWhatsAppClient(clientId, socket) {
   clients[clientId] = {};
 
   client = new Client({
@@ -69,7 +69,7 @@ const createServer = async (server) => {
     id = socket.handshake.auth.userData
       ? socket.handshake.auth.userData._id
       : "";
-    createWhatsAppClient("65fabd37acea9af662561a1e", io, socket);
+    createWhatsAppClient(id, io, socket);
     // socketRouter(io, socket, client, clients,id);
   });
 
