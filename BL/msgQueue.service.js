@@ -6,9 +6,32 @@ const { sendNewMessage } = require('./sendToWhatsUp')
 let msgSchedule = {};
 let queue = {};
 
-function sendDataInSocket(userId) {
-  const dataToClient = { queue, msgSchedule }
-  sockets[userId].emit('queue', dataToClient)
+async function sendDataInSocket(userId) {
+  try {
+    const funcUpdateData = async(ms)=>{
+      let obj = {fullNameLead:'', nameCampaign:'', dateToSend:''}
+      let campaign = await campaignController.read({_id:ms.campaignId})
+      if (!campaign) throw 'campaign not exist'
+      let lead = campaign[0].leads.find(l=>String(l._id) == String(ms.leadId))
+      if (!lead) throw 'lead not exist'
+      obj.fullNameLead = lead.fullName
+      obj.nameCampaign = campaign[0]['title']
+      obj.dateToSend = ms.timeToSend
+      return obj
+    }
+    
+    const queuePromises = queue[userId].map(ms => funcUpdateData(ms))
+    const schedulePromises = msgSchedule[userId].map(ms => funcUpdateData(ms))
+
+    const queueMe = await Promise.all(queuePromises)
+    const scheduleMe = await Promise.all(schedulePromises)
+    const dataToClient = { b:queueMe, a:scheduleMe }
+    sockets[userId].emit('queue', dataToClient)
+
+  } catch (error) {
+    console.log(error);
+  }
+
 }
 
 function checkTimeMsg(msg, userId) {
@@ -169,7 +192,7 @@ async function sendQueue(userId) {
       await createReceideMsg(userId);
       sentOneMsg(queue[userId][0]);
       setTimeout(async () => {
-        await msgQueueController.del(queue[userId][0]._id);
+        // await msgQueueController.del(queue[userId][0]._id);
         queue[userId].shift();
         sendDataInSocket(userId)
         sendQueue(userId);
