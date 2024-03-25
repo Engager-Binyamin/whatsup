@@ -46,28 +46,39 @@ return {
 }
 
 function injectionDataToMsg(msg) {
-  const { leadsArr, msgId, msgContent } = msg;
-  const newLeads = leadsArr.map(l=>{return {...l._doc}})
-  // console.log("leadsArr in second function",  newLeads);
+  const { leads, msgId, msgContent } = msg;
+  const newLeads = leads.map(l=>{return {...l._doc}})
 
   if (!msgContent.includes("@")) {
-    massege = leadsArr.map((lead) => {
-      return { lead: lead._id, msgId, msgContent: msgContent };
-    });
-    return massege;
-  } else {
-    const fields = Object.keys(newLeads[0]);
-    // console.log( fields );
-    massege = newLeads.map((lead) => {
-      let orderMsg = msgContent
-      fields.forEach(field=>{
-        orderMsg = orderMsg.replaceAll(new RegExp("\\@" +field, "g"), lead[field]);
+    massege = leads.map((lead) => {
+        return {lead:lead._id ,msgId ,msgContent:msgContent}
       })
+      return  massege
+    } else {
       
-      return {lead:lead._id, msgId ,content:orderMsg}
-    });
+      const fields = Object.keys(leads[0]);
+      console.log("fields,", fields);
+  
+        massege = leads.map((lead) => {
+          // console.log(lead['extra'].fruit.value);
+          let orderMsg = msgContent
+          fields.forEach(field=>{
+            // console.log("field:",field);
+            // console.log("lead [field]:",lead[field]);
+            
+            if (typeof lead[field]=== 'object'){
+              for (i in lead[field]){
+                orderMsg = orderMsg.replaceAll(new RegExp("\\@" +lead[field][i].he, "g"), lead[field][i].value+' ');
+              }
+            }else{
+              orderMsg = orderMsg.replaceAll(new RegExp("\\@" +field, "g"),  lead[field]);
+          }
+        })
+        
+        return {lead:lead._id, msgId ,msgContent:orderMsg}
+      });
+    }
+   console.log(massege);
+    return  massege;
   }
-  console.log(massege);
-  return massege;
-}
 module.exports = { sendMessage, getDetailsToSend };
