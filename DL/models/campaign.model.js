@@ -18,17 +18,25 @@ const receivedMsg = new mongoose.Schema({
   },
 });
 const leadSchema = new mongoose.Schema({
-  fName: {
+
+
+
+
+
+
+
+  fullName: {
     type: String,
-    required: true,
   },
-  lName: {
-    type: String,
-    required: true,
-  },
+  // fName: {
+  //   type: String,
+  // },
+  // lName: {
+  //   type: String,
+  // },
   email: {
     type: String,
-    default: "",
+    default: ''
     // ???OK
   },
   phone: {
@@ -37,7 +45,7 @@ const leadSchema = new mongoose.Schema({
   },
   notes: {
     type: String,
-    default: "",
+    default: ''
   },
   joinDate: {
     type: Date,
@@ -47,6 +55,64 @@ const leadSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  extra: {
+    type: mongoose.SchemaTypes.Mixed
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // fName: {
+  //   type: String,
+  //   required: true,
+  // },
+  // lName: {
+  //   type: String,
+  //   required: true,
+  // },
+  // email: {
+  //   type: String,
+  //   default: "",
+  //   // ???OK
+  // },
+  // phone: {
+  //   type: String,
+  //   required: true,
+  // },
+  // notes: {
+  //   type: String,
+  //   default: "",
+  // },
+  // joinDate: {
+  //   type: Date,
+  //   default: Date.now,
+  // },
+  // isActive: {
+  //   type: Boolean,
+  //   default: true,
+  // },
 });
 const msgSchema = new mongoose.Schema({
   subject: {

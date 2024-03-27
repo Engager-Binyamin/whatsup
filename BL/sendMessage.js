@@ -1,5 +1,6 @@
 const campaignController = require("../DL/controllers/campaign.controller");
-
+const { addMsgToQueue } = require("./msgQueue.service");
+const { isValidObjectId } = require("../functions/helper");
 // /message/send
 // מקבל user כטוקן
 // מקבל מזהה קמפיין ומזהה הודעה
@@ -7,20 +8,35 @@ const campaignController = require("../DL/controllers/campaign.controller");
 // מעביר לפונ' הזרקת משתנים דינאמיים - אריה
 // שומר כל הודעה בטבלת "תור עבודה" לפי אלגוריתם של דיליי - מרים
 
-async function sendMessage(body) {
-  // body - user id,campaign id, massage id,
+async function sendMessageService(msg) {
   try {
-    const { user, campaignId, msgId } = body;
+    const { userId, campaignId, msgId, timeToSend } = msg;
     let details = await getDetailsToSend(campaignId, msgId);
     let msgToSend = await injectionDataToMsg(details);
-    // console.log(msgToSend);
-    // let result = await sendMessageToQuete(user, campaignId, msgToSend);
-  } catch (err) {}
+    let messagesToQueue = msgToSend.map((msg) => {
+      return {
+        msgId: msg.msgId,
+        userId,
+        leadId: msg.leadId,
+        contentMsg: msg.content,
+        timeToSend: timeToSend || Date.now(),
+        campaignId,
+      };
+    });
+    addMsgToQueue(messagesToQueue, userId);
+  } catch (err) {
+    console.log(err);
+    return err;
+  }
 }
 
 async function getDetailsToSend(campaignId, msgId) {
   // שולפת לידים שלא קיבלו הודעה והם פעילים
   //  שולפת את ההודעה המלאה
+  if (!isValidObjectId(campaignId)) throw { code: 401, msg: "inValid _id" };
+  if (!isValidObjectId(msgId)) throw { code: 401, msg: "inValid msg_id" };
+  if (!campaignId) throw { code: 404, msg: "No campaign found" };
+  if (!msgId) throw { code: 404, msg: "No msg found" };
   let campaign = await campaignController.readOne({
     _id: campaignId,
     "msg._id": msgId,
@@ -35,14 +51,13 @@ async function getDetailsToSend(campaignId, msgId) {
       leadsArr.push(lead);
     }
   });
-// console.log("leadsArr in first function", leadsArr);
-let msgContent = msg.content;
-// console.log("msgC", msgContent);
-return {
-  leadsArr,
-  msgId,
-  msgContent,
-};
+
+  let msgContent = msg.content;
+  return {
+    leadsArr,
+    msgId,
+    msgContent,
+  };
 }
 
 function injectionDataToMsg(msg) {
@@ -82,3 +97,4 @@ function injectionDataToMsg(msg) {
     return  massege;
   }
 module.exports = { sendMessage, getDetailsToSend };
+

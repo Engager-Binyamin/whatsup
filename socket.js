@@ -1,16 +1,13 @@
 const { Server } = require("socket.io");
-const { socketRouter } = require("./clientInitialize");
-const userModel = require("./DL/models/user.model");
 const { Client, LocalAuth } = require("whatsapp-web.js");
 const qrcode = require("qrcode-terminal");
+const { createNewQueue,} = require("./BL/msgQueue.service");
+const { clients } = require("./clients");
+const { sockets } = require("./sockets");
 
-const clients = {
-  "65ed9c525b51ed6b4bd16107": {},
-  123456789: {},
-  "65eeca187d0944e92ab44179": {},
-};
 let client;
 let id;
+
 function createWhatsAppClient(clientId, io, socket) {
   clients[clientId] = {};
 
@@ -29,16 +26,24 @@ function createWhatsAppClient(clientId, io, socket) {
     if (clientId) {
       console.log(`QR code received for ${clientId}`);
       qrcode.generate(qr, { small: true });
-      socket.emit(`qr`, qr);
+      io.to(clientId).emit(`qr`, qr);
     }
   });
-
+  socket.on('disconnect',()=>{
+      socket.disconnect()
+  })
   client.on("ready", () => {
     console.log(`Client ${clientId} is ready!`);
+
     clients[clientId].isReady = true;
-    socket.emit(`ready`);
+    io.to(clientId).emit(`ready`);
   });
 
+  if (client.isReady) {
+    client.bot.on("disconnected", (reason) => {
+      console.log(`Session disconnected for reason ${reason}`);
+    });
+  }
   client
     .initialize()
     .then()
@@ -62,13 +67,17 @@ const createServer = async (server) => {
     id = socket.handshake.auth.userData
       ? socket.handshake.auth.userData._id
       : "";
-    createWhatsAppClient(id, io, socket);
-    // socketRouter(io, socket, client, clients,id);
+      // socketRouter(io, socket, client, clients,id);
+      sockets[id] = socket
+      socket.join(id)
+      createWhatsAppClient(id, io, socket);
   });
 
   server.listen(3000, () => {
+    createNewQueue(id = '65ed9c525b51ed6b4bd16107');
+    // צריך לשלוח userId!!
     console.log("listening on *:3000");
   });
 };
 
-module.exports = { createServer, clients };
+module.exports = { createServer };
