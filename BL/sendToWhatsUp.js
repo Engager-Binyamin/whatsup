@@ -4,7 +4,6 @@ const campaignController = require("../DL/controllers/campaign.controller.js");
 let isSending = false;
 
 async function sendNewMessage(data) {
-  console.log(data);
   let client = clients[data.userID];
   // const rtrnData = {
   //   _idL: data._idL,
