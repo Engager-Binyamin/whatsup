@@ -44,12 +44,14 @@ async function getDetailsToSend(campaignId, msgId) {
   if (!campaign) throw { msg: "no messeges in this campaign", code: 404 };
 
   let msg = campaign.msg.find((m) => m._id == msgId);
+  // console.log("msg in details:", msg);
   let leadsArr = [];
   campaign.leads.map((lead) => {
     if (lead.isActive == true) {
       leadsArr.push(lead);
     }
   });
+
   let msgContent = msg.content;
   return {
     leadsArr,
@@ -59,24 +61,40 @@ async function getDetailsToSend(campaignId, msgId) {
 }
 
 function injectionDataToMsg(msg) {
-  const { leadsArr, msgId, msgContent } = msg;
+  const { leads, msgId, msgContent } = msg;
+  const newLeads = leads.map(l=>{return {...l._doc}})
+
   if (!msgContent.includes("@")) {
-    massege = leadsArr.map((lead) => {
-      return { leadId: lead._id, msgId, content: msgContent };
-    });
-    return massege;
-  } else {
-    const fields = leadsArr[0];
-    massege = leadsArr.map((lead) => {
-      let namePattern = new RegExp("\\@" + fields[0], "g");
-      let orderMsg = msgContent.replaceAll(namePattern, lead.fullName);
-      let emailPattern = new RegExp("\\@" + fields[1], "g");
-      orderMsg = orderMsg.replaceAll(emailPattern, lead.email);
-      let phonePattern = new RegExp("\\@" + fields[2], "g");
-      orderMsg = orderMsg.replaceAll(phonePattern, lead.phone);
-      return { leadId: lead._id, msgId, content: orderMsg };
-    });
+    massege = leads.map((lead) => {
+        return {lead:lead._id ,msgId ,msgContent:msgContent}
+      })
+      return  massege
+    } else {
+      
+      const fields = Object.keys(leads[0]);
+      console.log("fields,", fields);
+  
+        massege = leads.map((lead) => {
+          // console.log(lead['extra'].fruit.value);
+          let orderMsg = msgContent
+          fields.forEach(field=>{
+            // console.log("field:",field);
+            // console.log("lead [field]:",lead[field]);
+            
+            if (typeof lead[field]=== 'object'){
+              for (i in lead[field]){
+                orderMsg = orderMsg.replaceAll(new RegExp("\\@" +lead[field][i].he, "g"), lead[field][i].value+' ');
+              }
+            }else{
+              orderMsg = orderMsg.replaceAll(new RegExp("\\@" +field, "g"),  lead[field]);
+          }
+        })
+        
+        return {lead:lead._id, msgId ,msgContent:orderMsg}
+      });
+    }
+   console.log(massege);
+    return  massege;
   }
-  return massege;
-}
-module.exports = { sendMessageService, getDetailsToSend };
+module.exports = { sendMessage, getDetailsToSend };
+

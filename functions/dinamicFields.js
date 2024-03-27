@@ -13,8 +13,8 @@ function dinamicInput(msg) {
   
        massege = leads.map((lead) => {
          
-         let namePattern = new RegExp("\\@" + fields[0], "g");
-         let orderMsg = msgContent.replaceAll(namePattern, lead.fullName);
+        //  let namePattern = new RegExp("\\@" + fields[0], "g");
+         let orderMsg = msgContent.replaceAll(new RegExp("\\@" + fields[0], "g"), lead[fields[0]]);
          let emailPattern = new RegExp("\\@" + fields[1], "g");
          orderMsg = orderMsg.replaceAll(emailPattern, lead.email);
          let phonePattern = new RegExp("\\@" + fields[2], "g");
